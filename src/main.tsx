@@ -13,7 +13,7 @@ if (!rootElement) {
 
 createRoot(rootElement).render(
   <StrictMode>
-    <BrowserRouter>
+    <BrowserRouter basename="/portfolio-2026">
       <App />
     </BrowserRouter>
   </StrictMode>,
