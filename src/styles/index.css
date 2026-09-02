@@ -1,0 +1,8 @@
+@import 'lenis/dist/lenis.css';
+@import '@fontsource-variable/dm-sans';
+@import './tokens.css';
+@import './reset.css';
+@import './global.css';
+@import './home.css';
+@import './contact.css';
+@import './transitions.css';

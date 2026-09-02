@@ -1,0 +1,220 @@
+:root {
+  /* Color */
+  --color-background: #ededed;
+  --color-surface: #fafafa;
+  --color-foreground: #100f0f;
+  --color-text-primary: var(--color-foreground);
+  --color-secondary: #666;
+  --color-text-secondary: var(--color-secondary);
+  --color-tertiary: #999;
+  --color-text-tertiary: var(--color-tertiary);
+  --color-grid-line: rgba(16, 15, 15, 0.055);
+
+  /* Shared liquid-glass material */
+  --glass-background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.62) 0%,
+    rgba(255, 255, 255, 0.24) 48%,
+    rgba(255, 255, 255, 0.42) 100%
+  );
+  --glass-border: 1px solid rgba(255, 255, 255, 0.72);
+  --glass-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.88),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.22),
+    0 1px 2px rgba(16, 15, 15, 0.08),
+    0 8px 24px rgba(16, 15, 15, 0.08);
+  --glass-filter: blur(24px) saturate(180%) contrast(105%);
+
+  /* Typography */
+  --font-family-sans: 'DM Sans Variable', 'DM Sans', Arial, sans-serif;
+  --font-size-caption: clamp(0.6875rem, 0.66rem + 0.12vw, 0.75rem);
+  --font-size-label: clamp(0.8125rem, 0.77rem + 0.18vw, 1rem);
+  --font-size-body: clamp(1rem, 0.95rem + 0.22vw, 1.125rem);
+  --font-size-heading: clamp(2rem, 1.55rem + 2vw, 3.5rem);
+  --font-size-display: clamp(2.75rem, 1.65rem + 4.8vw, 6.25rem);
+  --line-height-caption: 1.35;
+  --line-height-label: 1.5;
+  --line-height-body: 1.55;
+  --line-height-heading: 1.05;
+  --line-height-display: 1;
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 550;
+  --font-weight-black: 900;
+  --letter-spacing-label: 0.03rem;
+  --letter-spacing-heading: -0.035em;
+  --letter-spacing-display: -0.02em;
+
+  /* Component typography */
+  --type-page-heading-size: 2rem;
+
+  --type-logo-size: 3rem;
+  --type-logo-weight: var(--font-weight-black);
+  --type-logo-line-height: 1.3;
+  --type-logo-letter-spacing: -2.4px;
+
+  --type-nav-size: var(--font-size-label);
+  --type-nav-weight: var(--font-weight-semibold);
+  --type-nav-line-height: 1.5rem;
+  --type-nav-letter-spacing: var(--letter-spacing-label);
+
+  --type-switcher-size: 1rem;
+  --type-switcher-weight: var(--font-weight-semibold);
+  --type-switcher-line-height: 1.5rem;
+
+  --type-project-title-size: clamp(4rem, 5.208vw, 6.25rem);
+  --type-project-title-weight: 300;
+  --type-project-title-line-height: var(--line-height-display);
+  --type-project-title-letter-spacing: var(--letter-spacing-display);
+  --type-tooltip-title-size: 1rem;
+  --type-tooltip-title-weight: var(--font-weight-semibold);
+  --type-tooltip-title-line-height: 1.25rem;
+
+  --type-tooltip-meta-size: 0.75rem;
+  --type-tooltip-meta-line-height: 1rem;
+  --type-card-meta-size: 0.75rem;
+  --type-card-meta-line-height: 1rem;
+
+  --type-contact-label-size: var(--font-size-label);
+  --type-contact-label-weight: var(--font-weight-medium);
+  --type-contact-label-line-height: var(--line-height-label);
+  --type-contact-label-letter-spacing: var(--letter-spacing-label);
+  --type-contact-heading-size: var(--font-size-display);
+  --type-contact-heading-weight: var(--font-weight-black);
+  --type-contact-heading-line-height: var(--line-height-display);
+  --type-contact-heading-letter-spacing: var(--line-height-display);
+  --type-contact-link-size: clamp(1.125rem, 1.2vw, 1.5rem);
+  --type-contact-link-weight: var(--font-weight-semibold);
+  --type-contact-link-line-height: 1.25;
+
+  /* Spacing: 4px base, 8px rhythm */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.5rem;
+  --space-6: 2rem;
+  --space-7: 2.5rem;
+  --space-8: 3rem;
+  --space-9: 3.5rem;
+  --space-10: 4rem;
+  --space-11: 5rem;
+  --space-12: 6rem;
+  --space-14: 8rem;
+
+  /* Responsive layout */
+  --layout-gutter: 3rem;
+  --header-block-offset: 1.5rem;
+  --gallery-columns: 4;
+  --gallery-card-max: 17.5rem;
+  --gallery-max-width: 107.5rem;
+  --gallery-inline-margin: clamp(8rem, 9.5vw, 12rem);
+  --gallery-column-gap: 1.5rem;
+  --gallery-top-space: 13.75rem;
+  --gallery-row-gap: 8rem;
+  --gallery-bottom-space: var(--gallery-row-gap);
+
+  --contact-label-gap: var(--space-4);
+  --contact-links-offset: var(--space-6);
+  --contact-link-gap: .5rem;
+  --contact-link-icon-size: 1.25rem;
+
+  /* Shape, motion, and stacking */
+  --radius-pill: 100rem;
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --duration-fast: 120ms;
+  --duration-ui: 220ms;
+  --duration-panel: 320ms;
+  --z-content: 1;
+  --z-sticky: 20;
+  --z-modal: 40;
+  --z-tooltip: 60;
+  --z-transition: 100;
+
+  --page-gutter: var(--layout-gutter);
+  --focus-outline-width: 2px;
+}
+
+@media (max-width: 1199px) {
+  :root {
+    --layout-gutter: 3rem;
+    --gallery-columns: 3;
+    --gallery-max-width: 62.5rem;
+    --gallery-inline-margin: 3rem;
+    --gallery-column-gap: 2rem;
+    --gallery-top-space: 11.5rem;
+    --gallery-row-gap: 5.5rem;
+    --type-logo-size: 2.375rem;
+  }
+}
+
+@media (max-width: 1024px) {
+  :root {
+    /* Tablet typography */
+    --font-size-caption: 0.75rem;
+    --font-size-label: 0.875rem;
+    --font-size-body: 1rem;
+    --font-size-heading: clamp(2rem, 1.5rem + 2vw, 3rem);
+    --font-size-display: clamp(2.75rem, 2rem + 4vw, 4.75rem);
+    --line-height-caption: 1.35;
+    --line-height-body: 1.5;
+    --line-height-heading: 1.05;
+
+    /* Tablet component typography */
+    --type-logo-size: 2.375rem;
+    --type-nav-size: var(--font-size-display);
+    --type-nav-weight: var(--font-weight-medium);
+    --type-nav-line-height: var(--line-height-display);
+    --type-nav-letter-spacing: var(--letter-spacing-heading);
+    --type-project-title-size: clamp(2.625rem, 8vw, 4.25rem);
+    --type-contact-heading-size: var(--font-size-display);
+    --type-contact-link-size: 1.25rem;
+
+    /* Tablet layout */
+    --layout-gutter: 1.5rem;
+    --header-block-offset: 1.25rem;
+    --gallery-row-gap: 2rem;
+    --contact-label-gap: var(--space-4);
+    --contact-links-offset: var(--space-6);
+  }
+}
+
+@media (max-width: 640px) {
+  :root {
+    /* Mobile typography */
+    --font-size-caption: 0.6875rem;
+    --font-size-label: 0.8125rem;
+    --font-size-body: 1rem;
+    --font-size-heading: clamp(1.75rem, 1.4rem + 1.5vw, 2rem);
+    --font-size-display: clamp(2.5rem, 2rem + 4vw, 3.5rem);
+    --line-height-caption: 1.4;
+    --line-height-body: 1.5;
+    --line-height-heading: 1.08;
+
+    /* Mobile component typography */
+    --type-logo-size: 2rem;
+    --type-logo-letter-spacing: -1.6px;
+    --type-project-title-size: clamp(2.25rem, 11vw, 3.25rem);
+    --type-card-meta-size: 0.6875rem;
+    --type-card-meta-line-height: 0.875rem;
+    --type-contact-heading-size: var(--font-size-display);
+    --type-contact-heading-line-height: var(--line-height-display-display);
+    --type-contact-link-size: 1.5rem;
+
+    /* Mobile layout */
+    --layout-gutter: 1rem;
+    --header-block-offset: 1rem;
+    --gallery-columns: 2;
+    --gallery-max-width: 100%;
+    --gallery-inline-margin: clamp(1rem, 2rem, 12vw);
+    --gallery-column-gap: clamp(1rem, 1rem, 2rem);
+    --gallery-top-space: 9rem;
+    --gallery-row-gap: 2rem;
+    --contact-label-gap: var(--space-4);
+    --contact-links-offset: var(--space-4);
+    --contact-link-gap: 0;
+    --contact-link-icon-size: 1.125rem;
+  }
+}

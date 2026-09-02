@@ -1,0 +1,32 @@
+.route-transition {
+  position: fixed;
+  z-index: var(--z-transition);
+  inset: 0;
+  overflow: clip;
+  pointer-events: all;
+}
+
+.route-transition__dimmer,
+.route-transition__curtain {
+  position: absolute;
+  inset: 0;
+}
+
+.route-transition__dimmer {
+  background: var(--color-foreground);
+  opacity: 0;
+}
+
+.route-transition__curtain {
+  opacity: 1;
+  transform: translate3d(0, 14vh, 0);
+  will-change: transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .route-transition__curtain {
+    opacity: 0;
+    transform: none;
+    will-change: auto;
+  }
+}

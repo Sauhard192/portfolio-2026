@@ -1,0 +1,88 @@
+.contact-page {
+  position: relative;
+  min-height: 100dvh;
+  overflow: clip;
+}
+
+.contact-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100dvh;
+  padding: max(7rem, env(safe-area-inset-top)) var(--layout-gutter)
+    max(3rem, env(safe-area-inset-bottom));
+  text-align: center;
+}
+
+.contact-label {
+  margin-bottom: var(--contact-label-gap);
+  color: var(--color-text-secondary);
+  font-size: var(--type-contact-label-size);
+  font-weight: var(--type-contact-label-weight);
+  line-height: var(--type-contact-label-line-height);
+  letter-spacing: var(--type-contact-label-letter-spacing);
+}
+
+.contact-content h1 {
+  margin: 0;
+  color: var(--color-text-primary);
+  font-size: var(--type-contact-heading-size);
+  font-weight: var(--type-contact-heading-weight);
+  line-height: var(--type-contact-heading-line-height);
+  letter-spacing: var(--type-contact-heading-letter-spacing);
+}
+
+.contact-links {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--contact-link-gap);
+  margin-top: var(--contact-links-offset);
+}
+
+.contact-link-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: 2.5rem;
+  color: var(--color-text-primary);
+  font-size: var(--type-contact-link-size);
+  font-weight: var(--type-contact-link-weight);
+  line-height: var(--type-contact-link-line-height);
+  transition: transform var(--duration-fast) var(--ease-out);
+}
+
+.contact-link-button:active {
+  transform: scale(0.97);
+}
+
+.contact-link-button__icon {
+  width: var(--contact-link-icon-size);
+  height: var(--contact-link-icon-size);
+  flex: 0 0 auto;
+}
+
+@media (max-width: 1024px) {
+  .contact-content {
+    padding-inline: var(--layout-gutter);
+  }
+}
+
+@media (max-width: 640px) {
+  .contact-content {
+    padding-top: max(6rem, env(safe-area-inset-top));
+  }
+
+  .contact-link-button {
+    max-width: calc(100vw - var(--layout-gutter) - var(--layout-gutter));
+    overflow-wrap: anywhere;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .contact-link-button {
+    transition-duration: 0.01ms;
+  }
+}
