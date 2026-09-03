@@ -181,8 +181,8 @@
 
 .project-cycle--grid {
   display: grid;
-  grid-template-columns: repeat(var(--gallery-columns), minmax(0, var(--gallery-card-max)));
-  justify-content: space-between;
+  /* Cards absorb extra width; the column gap stays fixed. */
+  grid-template-columns: repeat(var(--gallery-columns), minmax(0, 1fr));
   width: min(
     calc(100% - var(--gallery-inline-margin) - var(--gallery-inline-margin)),
     var(--gallery-max-width)
@@ -195,7 +195,7 @@
 
 .project-card {
   position: relative;
-  width: min(100%, var(--gallery-card-max));
+  width: 100%;
   outline-offset: 8px;
   transition: scale var(--duration-ui) var(--ease-out), filter var(--duration-ui) ease;
 }
@@ -215,7 +215,7 @@
 
 .project-card img {
   width: 100%;
-  aspect-ratio: 1/1;
+  aspect-ratio: 4 / 3;
   object-fit: cover;
 }
 
@@ -258,8 +258,8 @@
   z-index: 4;
   right: 2rem;
   bottom: 2rem;
-  width: 260px;
-  aspect-ratio: 330 / 495;
+  width: 300px;
+  aspect-ratio: 4/3;
   opacity: 0;
   transform: scale(0.96);
   transform-origin: bottom right;
@@ -393,10 +393,6 @@
 }
 
 @media (max-width: 1024px) {
-  .project-card {
-    width: 100%;
-  }
-
   .project-card__touch-meta {
     display: flex;
     justify-content: space-between;

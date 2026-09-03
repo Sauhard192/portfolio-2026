@@ -2,6 +2,7 @@ import { type ReactNode, useEffect, useRef, useState } from 'react'
 import { Routes, useLocation, type Location } from 'react-router-dom'
 import { gsap } from 'gsap'
 import { shouldAnimateRouteChange } from './routeTransitionRules'
+import { useTransitionScrollLock } from '../../hooks/useTransitionScrollLock'
 
 interface RouteTransitionProps {
   children: ReactNode
@@ -15,6 +16,7 @@ export function RouteTransition({ children }: RouteTransitionProps) {
   const dimmerRef = useRef<HTMLDivElement>(null)
   const curtainRef = useRef<HTMLDivElement>(null)
   const pendingLocationRef = useRef(location)
+  useTransitionScrollLock(transitionActive, location.pathname.startsWith('/case-studies/'))
 
   useEffect(() => {
     if (location.key === displayLocation.key) {
@@ -34,8 +36,6 @@ export function RouteTransition({ children }: RouteTransitionProps) {
     }
 
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    const previousBodyOverflow = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
     setTransitionActive(true)
 
     let timeline: gsap.core.Timeline | null = null
@@ -50,7 +50,6 @@ export function RouteTransition({ children }: RouteTransitionProps) {
           window.scrollTo(0, 0)
           setDisplayLocation(pendingLocationRef.current)
           setTransitionActive(false)
-          document.body.style.overflow = previousBodyOverflow
         },
       })
 
@@ -78,7 +77,6 @@ export function RouteTransition({ children }: RouteTransitionProps) {
       cancelAnimationFrame(frame)
       timeline?.kill()
       gsap.killTweensOf([dimmerRef.current, curtainRef.current])
-      document.body.style.overflow = previousBodyOverflow
     }
   }, [displayLocation, location])
 

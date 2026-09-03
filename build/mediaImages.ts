@@ -52,3 +52,32 @@ export function createImageOptimizer(cacheDirectory: string) {
     return job
   }
 }
+
+// GIF detail animation is separate from responsive stills used by Home/the footer.
+export function createAnimationOptimizer(cacheDirectory: string) {
+  const jobs = new Map<string, Promise<string>>()
+  return async (imagePath: string): Promise<string | undefined> => {
+    if (!/\.(gif|webp)$/i.test(imagePath)) return
+    const input = await readFile(imagePath)
+    const metadata = await sharp(input).metadata()
+    if ((metadata.pages ?? 1) < 2) return
+    const hash = createHash('sha256').update(input).update(sharp.versions.sharp)
+      .update('animation-1440-quality84-v1').digest('hex').slice(0, 24)
+    const existing = jobs.get(hash)
+    if (existing) return existing
+    const job = (async () => {
+      const output = path.join(cacheDirectory, `${hash}-animated.webp`)
+      try { await sharp(output).metadata(); return output } catch { /* Encode on first use. */ }
+      await mkdir(cacheDirectory, { recursive: true })
+      const temporary = `${output}.${randomUUID()}.tmp`
+      await sharp(input, { animated: true })
+        .resize({ width: 1440, height: 1440, fit: 'inside', withoutEnlargement: true })
+        .toColourspace('srgb').webp({ quality: 84 }).toFile(temporary)
+      await rename(temporary, output)
+      return output
+    })()
+    jobs.set(hash, job)
+    job.catch(() => jobs.delete(hash))
+    return job
+  }
+}

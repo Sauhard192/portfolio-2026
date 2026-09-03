@@ -43,7 +43,11 @@ test('image-to-image navigation keeps the header and avoids replaying the curtai
   assert.equal(shouldAnimateRouteChange('/art/first', '/photography/first'), true)
 })
 
-test('existing top-level transitions and excluded case studies retain their behavior', () => {
+test('top-level and case-study routes use cinematic transitions', () => {
   assert.equal(shouldAnimateRouteChange('/', '/contact'), true)
-  assert.equal(shouldAnimateRouteChange('/', '/case-studies/example'), false)
+  assert.equal(shouldAnimateRouteChange('/', '/case-studies/example'), true)
+  assert.equal(shouldAnimateRouteChange('/case-studies/first', '/case-studies/second'), true)
+  assert.equal(shouldAnimateRouteChange('/case-studies/first', '/'), true)
+  assert.equal(shouldAnimateRouteChange('/case-studies/first', '/contact'), true)
+  assert.equal(shouldAnimateRouteChange('/case-studies/first', '/case-studies/first'), false)
 })

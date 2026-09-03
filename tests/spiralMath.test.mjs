@@ -9,9 +9,11 @@ import {
   decayScrollMotion,
   getHelixPose,
   getRadiusScale,
-  getResponsiveRadius,
+  getSpiralFitScale,
+  getSpiralLayout,
   getSpiralSlot,
   SCROLL_MOTION,
+  SPIRAL_LAYOUT,
   wrapPhase,
 } from '../src/components/gallery/spiralMath.ts'
 
@@ -124,17 +126,70 @@ test('subpixel wheel tails taper the effect and zero input does not restart it',
   assert.deepEqual(state, before)
 })
 
-test('mobile is tighter horizontally, tablet is wider, and desktop remains unchanged', () => {
-  near(getResponsiveRadius(390, 2.9), 1.12)
-  for (const width of [800, 850, 900]) {
-    const viewport = 6.1 * width / 900
-    assert.ok(getResponsiveRadius(width, viewport) >= 2.05)
-    assert.ok(getResponsiveRadius(width, viewport) > viewport * 0.22)
-  }
-  near(getResponsiveRadius(1280, 10.9), 10.9 * 0.22)
-  near(getResponsiveRadius(1920, 20), 2.85)
-  for (const width of [600, 700, 800, 900, 1100]) {
-    assert.ok(Math.abs(getResponsiveRadius(width - 0.01, 6) - getResponsiveRadius(width + 0.01, 6)) < 0.001)
+test('radius, card width and angular density change only at configured breakpoints', () => {
+  const { mobile, tablet, desktop } = SPIRAL_LAYOUT
+  for (const width of [320, mobile.maxWidth / 2, mobile.maxWidth - 1, mobile.maxWidth]) assert.equal(getSpiralLayout(width), mobile)
+  for (const width of [mobile.maxWidth + 1, (mobile.maxWidth + tablet.maxWidth) / 2, tablet.maxWidth]) assert.equal(getSpiralLayout(width), tablet)
+  for (const width of [tablet.maxWidth + 1, tablet.maxWidth + 400, 2560]) assert.equal(getSpiralLayout(width), desktop)
+  assert.deepEqual(Object.values(SPIRAL_LAYOUT).map(layout => layout.edgePadding), [16, 24, 48])
+})
+
+const fitOptions = (width, height) => ({
+  screenWidth: width,
+  screenHeight: height,
+  radius: getSpiralLayout(width).radius,
+  edgePadding: getSpiralLayout(width).edgePadding,
+  cameraDistance: 8,
+  cameraFov: 42,
+  maxRadiusScale: 1.1,
+  maxHoverScale: 1.05,
+})
+
+test('fitting shrinks the whole composition only when needed, never enlarges it', () => {
+  const narrowWidth = SPIRAL_LAYOUT.mobile.maxWidth + 1
+  const narrow = getSpiralFitScale(fitOptions(narrowWidth, 1000))
+  const wider = getSpiralFitScale(fitOptions(SPIRAL_LAYOUT.tablet.maxWidth, 1000))
+  assert.ok(narrow > 0 && narrow < wider)
+  assert.ok(wider <= 1)
+  near(getSpiralFitScale(fitOptions(1920, 1080)), 1)
+  near(getSpiralFitScale(fitOptions(2560, 1080)), 1)
+  near(getSpiralFitScale(fitOptions(0, 0)), 0)
+  // Uniform fitting preserves poster width relative to the cylinder circumference.
+  const layout = getSpiralLayout(narrowWidth)
+  near(layout.cardWidth * narrow / (layout.radius * narrow), layout.cardWidth / layout.radius)
+})
+
+test('projected posters keep edge margins through rotation, scrolling and hover at every breakpoint', () => {
+  const point = new THREE.Vector3()
+  const boundaries = [SPIRAL_LAYOUT.mobile.maxWidth, SPIRAL_LAYOUT.tablet.maxWidth]
+  for (const width of [320, 360, 390, 768, 850, 1440, 1920, ...boundaries.flatMap(width => [width - 1, width, width + 1])]) {
+    for (const height of [480, 900, 1200]) {
+      const options = fitOptions(width, height)
+      const scale = getSpiralFitScale(options)
+      const layout = getSpiralLayout(width)
+      const { geometry, unwrappedX } = createPosterGeometry(layout.cardWidth, layout.cardWidth / (4 / 3), 4 / 3, layout.radius)
+      const positions = geometry.getAttribute('position')
+      const camera = new THREE.PerspectiveCamera(options.cameraFov, width / height, 0.1, 40)
+      for (const distance of [options.cameraDistance, options.cameraDistance * 1.06]) {
+        camera.position.z = distance
+        camera.updateMatrixWorld()
+        for (const radiusScale of [0.9, 1, options.maxRadiusScale]) {
+          bendPosterGeometry(geometry, unwrappedX, layout.radius * radiusScale)
+          for (const hoverScale of [1, options.maxHoverScale]) {
+            for (let step = 0; step < 64; step += 1) {
+              const rotation = new THREE.Matrix4().makeRotationY(step * Math.PI * 2 / 64)
+              for (let index = 0; index < positions.count; index += 1) {
+                point.fromBufferAttribute(positions, index).multiplyScalar(scale * hoverScale).applyMatrix4(rotation).project(camera)
+                const screenX = (point.x + 1) * width / 2
+                assert.ok(screenX >= layout.edgePadding - 0.001 && screenX <= width - layout.edgePadding + 0.001,
+                  `${width}x${height}: poster at ${screenX}px violates ${layout.edgePadding}px padding`)
+              }
+            }
+          }
+        }
+      }
+      geometry.dispose()
+    }
   }
 })
 

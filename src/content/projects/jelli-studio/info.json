@@ -1,0 +1,44 @@
+{
+  "slug": "jelli-studios",
+  "title": "Jelli Studios",
+  "roles": [
+    "Visual Identity Design",
+    "Logo Design",
+    "Brand Guidelines"
+    
+  ],
+  "projectType": "Visual Identity",
+  "date": "2022",
+  "labels": {
+    "projectType": "PROJECT TYPE",
+    "date": "YEAR",
+    "description": "DESCRIPTION"
+  },
+  "description": "Jelli Studios is a concept game design and development studio. ",
+  "siteUrl": "",
+  "hero": "jelli.gif",
+  "sections": [
+    {
+      "images": [
+        "jelli-01.jpg",
+        "jelli-03.gif"
+      ]
+    },
+    {
+      "images":[
+        "jelli-04.jpg"
+      ]
+    },
+    {
+      "images": [
+        "jelli-05.jpg",
+        "jelli-06.jpg"
+      ]
+    },
+    {
+      "images": [
+        "jelli-09.jpg"
+      ]
+    }
+  ]
+}

@@ -3,7 +3,8 @@ import path from 'node:path'
 import sharp from 'sharp'
 import { normalizePath, type Plugin } from 'vite'
 import type { MediaCollection, MediaItem } from '../src/types/media.ts'
-import { createImageOptimizer } from './mediaImages.ts'
+import { createAnimationOptimizer, createImageOptimizer } from './mediaImages.ts'
+import { readProjectCollection, PROJECT_ORDER_FILE, type ProjectFile } from './projectContent.ts'
 
 interface ContentEntry extends Omit<MediaItem, 'image'> {
   imagePath: string
@@ -83,26 +84,80 @@ export async function readMediaCollection(directory: string): Promise<ContentEnt
 }
 
 const prefix = 'virtual:portfolio-media/'
+const imagePrefix = '\0portfolio-image:'
+const projectId = 'virtual:portfolio-projects'
 const collections: MediaCollection[] = ['art', 'photography']
 
 export function mediaContent(): Plugin {
   let contentRoot: string
   let building = false
   let optimizeImage: ReturnType<typeof createImageOptimizer>
-  const isContentFile = (file: string) => collections.some((collection) =>
+  let optimizeAnimation: ReturnType<typeof createAnimationOptimizer>
+  const contentDirectories = [...collections, 'projects']
+  const isContentFile = (file: string) => contentDirectories.some((collection) =>
     normalizePath(file).startsWith(`${normalizePath(path.join(contentRoot, collection))}/`),
   )
   return {
     name: 'portfolio-media-content',
+    enforce: 'pre', // Resolve optimized image objects before Vite's plain asset URLs.
     configResolved(config) {
       contentRoot = path.resolve(config.root, 'src/content')
       building = config.command === 'build'
       optimizeImage = createImageOptimizer(path.resolve(config.root, 'node_modules/.cache/portfolio-media'))
+      optimizeAnimation = createAnimationOptimizer(path.resolve(config.root, 'node_modules/.cache/portfolio-media'))
     },
-    resolveId(id) {
+    async resolveId(id, importer) {
+      if (id === projectId) return `\0${id}`
+      if (id.endsWith('?portfolio-image')) {
+        const resolved = await this.resolve(id.slice(0, -'?portfolio-image'.length), importer, { skipSelf: true })
+        if (!resolved) throw new Error(`Cannot find project image: ${id}`)
+        return imagePrefix + resolved.id
+      }
       if (collections.some((collection) => id === `${prefix}${collection}`)) return `\0${id}`
     },
     async load(id) {
+      if (id.startsWith(imagePrefix)) {
+        const imagePath = id.slice(imagePrefix.length)
+        this.addWatchFile(imagePath)
+        const variants = await optimizeImage(imagePath)
+        const names = ['small', 'medium', 'detail'] as const
+        const imports = names.map((name) => `import ${name} from ${JSON.stringify(`${normalizePath(variants[name].path)}?url&no-inline`)};`)
+        const unique = names.filter((name, index) => names.findIndex((other) => variants[other].width === variants[name].width) === index)
+        const srcSet = unique.map((name) => `${name} + ' ${variants[name].width}w'`).join(` + ', ' + `)
+        const thumbSet = unique.filter((name) => name !== 'detail').map((name) => `${name} + ' ${variants[name].width}w'`).join(` + ', ' + `)
+        const animation = await optimizeAnimation(imagePath)
+        if (animation) imports.push(`import animation from ${JSON.stringify(`${normalizePath(animation)}?url&no-inline`)};`)
+        return `${imports.join('\n')}\nexport default {src:detail,srcSet:${srcSet},width:${variants.detail.width},height:${variants.detail.height},thumbnail:{src:small,srcSet:${thumbSet}}${animation ? ',animatedSrc:animation' : ''}};`
+      }
+      if (id === `\0${projectId}`) {
+        const directory = path.join(contentRoot, 'projects')
+        const entries = await readProjectCollection(directory, path.resolve(contentRoot, '../assets/projects/project-placeholder.jpeg'))
+        if (building) {
+          this.addWatchFile(directory)
+          this.addWatchFile(path.join(directory, PROJECT_ORDER_FILE))
+        }
+        const imports: string[] = []
+        const imageNames = new Map<string, string>()
+        const imageCode = ({ path: imagePath, ...metadata }: ProjectFile) => {
+          let name = imageNames.get(imagePath)
+          if (!name) {
+            name = `projectImage${imageNames.size}`
+            imageNames.set(imagePath, name)
+            imports.push(`import ${name} from ${JSON.stringify(`${normalizePath(imagePath)}?portfolio-image`)};`)
+          }
+          return `{...${name},...${JSON.stringify(metadata)}}`
+        }
+        const items = entries.map(entry => {
+          if (building) this.addWatchFile(entry.infoPath)
+          const hero = imageCode(entry.hero)
+          const thumbnail = entry.thumbnail ? `,thumbnail:${imageCode(entry.thumbnail)}` : ''
+          const sections = entry.sections.map(section => section.type === 'notes'
+            ? JSON.stringify(section)
+            : `{...${JSON.stringify({ type: section.type, aspectRatio: section.aspectRatio })},images:[${section.images.map(imageCode).join(',')}]}`)
+          return `{...${JSON.stringify(entry.info)},hero:${hero}${thumbnail},sections:[${sections.join(',')}]}`
+        })
+        return `${imports.join('\n')}\nexport default [${items.join(',\n')}];`
+      }
       const collection = collections.find((name) => id === `\0${prefix}${name}`)
       if (!collection) return
       const directory = path.join(contentRoot, collection)
@@ -130,7 +185,7 @@ export function mediaContent(): Plugin {
     },
     configureServer(server) {
       // New/deleted folders also change the dataset, not just edited files.
-      server.watcher.add(collections.map((collection) => path.join(contentRoot, collection)))
+      server.watcher.add(contentDirectories.map((collection) => path.join(contentRoot, collection)))
       let timer: ReturnType<typeof setTimeout> | undefined
       const refresh = (file: string) => {
         if (!isContentFile(file)) return
@@ -139,6 +194,12 @@ export function mediaContent(): Plugin {
           for (const collection of collections) {
             const module = server.moduleGraph.getModuleById(`\0${prefix}${collection}`)
             if (module) server.moduleGraph.invalidateModule(module)
+          }
+          const projectModule = server.moduleGraph.getModuleById(`\0${projectId}`)
+          if (projectModule) server.moduleGraph.invalidateModule(projectModule)
+          // Optimized image virtual modules depend on the source's contents, not just its URL.
+          for (const module of server.moduleGraph.idToModuleMap.values()) {
+            if (module.id?.startsWith(imagePrefix)) server.moduleGraph.invalidateModule(module)
           }
           server.ws.send({ type: 'full-reload' })
         }, 150)

@@ -28,7 +28,7 @@ export function ContactPage() {
           <ContactLinkButton href="https://www.linkedin.com/in/sauhard-shrestha-2072921b7/" newTab>
             LinkedIn
           </ContactLinkButton>
-          <ContactLinkButton href="/sauhard-shrestha-cv.pdf" newTab>
+          <ContactLinkButton href="/portfolio-2026/sauhard-shrestha-cv.pdf" newTab>
             CV/Resume
           </ContactLinkButton>
         </div>

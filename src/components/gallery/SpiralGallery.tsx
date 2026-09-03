@@ -12,7 +12,8 @@ import {
   decayScrollMotion,
   getHelixPose,
   getRadiusScale,
-  getResponsiveRadius,
+  getSpiralFitScale,
+  getSpiralLayout,
   getSpiralSlot,
   type ScrollMotion,
   wrapPhase,
@@ -35,24 +36,19 @@ const HOVER_IDLE_SPEED_MULTIPLIER = 0.5
 const IDLE_ROTATION_SECONDS = 55
 const SCROLL_PATH_SPEED = 0.42
 const FULL_EFFECT_SPEED = 0.8
-const RADIUS_SCROLL_RANGE = 0.2 // Up: up to +20%; down: up to -20%.
-const RADIUS_RESPONSE = 36 // Fast response from the first scroll input.
-const RADIUS_RETURN = 7 // Higher = quicker settling; no waiting timer.
+const RADIUS_SCROLL_RANGE = 0.1 // Up: up to +10%; down: up to -10%.
+const RADIUS_RESPONSE = 30 // Fast response from the first scroll input.
+const RADIUS_RETURN = 20 // Higher = quicker settling; no waiting timer.
 const CAMERA_DISTANCE = 8
-const CAMERA_PULLBACK = 0.055
+const CAMERA_FOV = 42
+const CAMERA_PULLBACK = 0.06
+const FIT_HOVER_ALLOWANCE = 1.05 // Reserve room for up to 5% hover enlargement.
 
 // Layout controls (world units, not pixels).
 const HELIX_TURNS = 2
-// More cards per turn = smaller angular gaps; cylinder dimensions stay fixed.
-const DESKTOP_CARDS_PER_TURN = 7
-const MOBILE_CARDS_PER_TURN = 5
-const VERTICAL_SPACING = 1 // Preserves your current vertical-spacing setting.
-// Responsive radii and input momentum settings live in spiralMath.ts.
-const CARD_ASPECT_RATIO = 1 // Width / height; 1 = square.
-const CARD_WIDTH_MULTIPLIER = 1.1 // 10% wider than the previous portrait cards.
-const DESKTOP_CARD_WIDTH_MAX = 2.72 * (2 / 3)
-const DESKTOP_CARD_WIDTH_VIEWPORT_RATIO = 0.31 * (2 / 3)
-const MOBILE_CARD_WIDTH = 1.72 * (2 / 3)
+const VERTICAL_SPACING = .5 // Preserves your current vertical-spacing setting.
+// Edit breakpoint radius, cardWidth, cardsPerTurn and edgePadding in spiralMath.ts.
+const CARD_ASPECT_RATIO = 4/3 // Width / height; 1 = square.
 
 const dispatchCursorTarget = (interactive: boolean, tooltip?: string) => {
   window.dispatchEvent(
@@ -152,7 +148,7 @@ export default function SpiralGallery({ collection, items }: SpiralGalleryProps)
       tabIndex={0}
     >
       <Canvas
-        camera={{ position: [0, 0, CAMERA_DISTANCE], fov: 42, near: 0.1, far: 40 }}
+        camera={{ position: [0, 0, CAMERA_DISTANCE], fov: CAMERA_FOV, near: 0.1, far: 40 }}
         dpr={[1, 1.75]}
         gl={{
           alpha: true,
@@ -193,8 +189,8 @@ interface SpiralSceneProps extends SpiralGalleryProps {
 function SpiralScene({ collection, items, motion, onReady }: SpiralSceneProps) {
   const navigate = useNavigate()
   const { camera, gl, size, viewport } = useThree()
-  const compact = size.width <= 700
-  const slotCount = HELIX_TURNS * (compact ? MOBILE_CARDS_PER_TURN : DESKTOP_CARDS_PER_TURN)
+  const layout = getSpiralLayout(size.width)
+  const slotCount = HELIX_TURNS * layout.cardsPerTurn
   const imageSources = useMemo(() => [...new Set(items.map((item) => item.image.spiralSrc))], [items])
   const loadedTextures = useLoader(THREE.TextureLoader, imageSources)
   const textures = useMemo(() => {
@@ -205,11 +201,19 @@ function SpiralScene({ collection, items, motion, onReady }: SpiralSceneProps) {
       CARD_ASPECT_RATIO,
     ))
   }, [imageSources, items, loadedTextures])
-  const baseRadius = getResponsiveRadius(size.width, viewport.width)
-  const cardWidth = CARD_WIDTH_MULTIPLIER * (compact
-    ? MOBILE_CARD_WIDTH
-    : Math.min(DESKTOP_CARD_WIDTH_MAX, viewport.height * DESKTOP_CARD_WIDTH_VIEWPORT_RATIO))
+  const baseRadius = layout.radius
+  const cardWidth = layout.cardWidth
   const cardHeight = cardWidth / CARD_ASPECT_RATIO
+  const fitScale = getSpiralFitScale({
+    screenWidth: size.width,
+    screenHeight: size.height,
+    radius: baseRadius,
+    edgePadding: layout.edgePadding,
+    cameraDistance: CAMERA_DISTANCE,
+    cameraFov: CAMERA_FOV,
+    maxRadiusScale: 1 + RADIUS_SCROLL_RANGE,
+    maxHoverScale: FIT_HOVER_ALLOWANCE,
+  })
   const { geometry, unwrappedX } = useMemo(
     // Full UVs: each texture handles its own aspect-ratio crop.
     () => createPosterGeometry(cardWidth, cardHeight, CARD_ASPECT_RATIO, baseRadius),
@@ -263,7 +267,8 @@ function SpiralScene({ collection, items, motion, onReady }: SpiralSceneProps) {
     camera.position.z = cameraZ.current
     decayScrollMotion(state, safeDelta)
 
-    const verticalSpan = viewport.height + cardHeight * VERTICAL_SPACING
+    // Keep the full-height path and its existing vertical spacing behavior.
+    const verticalSpan = viewport.height + cardHeight * fitScale * VERTICAL_SPACING
 
     for (let index = 0; index < slotCount; index += 1) {
       const mesh = meshRefs.current[index]
@@ -304,6 +309,7 @@ function SpiralScene({ collection, items, motion, onReady }: SpiralSceneProps) {
         meshRefs.current[index] = mesh
       }}
       geometry={geometry}
+      scale={fitScale}
       onPointerOver={handlePointerOver}
       onPointerOut={handlePointerOut}
       onClick={(event) => {

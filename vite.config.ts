@@ -4,5 +4,5 @@ import { mediaContent } from './build/mediaContent.ts'
 
 export default defineConfig({
   plugins: [react(), mediaContent()],
-  base: '/portfolio-2026/',
+  base: '/portfolio-2026',
 })

@@ -11,14 +11,43 @@ export const SCROLL_MOTION = {
   radiusDecay: 3,
 } as const
 
-// Radius only: card sizes and vertical spacing are controlled in SpiralGallery.
-export const RADIUS_LAYOUT = {
-  mobile: 1.12,
-  tabletMin: 2.05,
-  tabletMultiplier: 1.2,
-  desktopMax: 2.85,
-  desktopViewportRatio: 0.22,
+// Fixed world-unit proportions per breakpoint; edgePadding is CSS pixels.
+export const SPIRAL_LAYOUT = {
+  mobile: { maxWidth: 640, radius: 1.65, cardWidth: 1.35, cardsPerTurn: 6.5, edgePadding: 12 },
+  tablet: { maxWidth: 1024, radius: 2.05, cardWidth: 1.65, cardsPerTurn: 7, edgePadding: 24 },
+  desktop: { radius: 2.4, cardWidth: 1.65, cardsPerTurn: 7, edgePadding: 48 },
 } as const
+
+export function getSpiralLayout(screenWidth: number) {
+  if (screenWidth <= SPIRAL_LAYOUT.mobile.maxWidth) return SPIRAL_LAYOUT.mobile
+  if (screenWidth <= SPIRAL_LAYOUT.tablet.maxWidth) return SPIRAL_LAYOUT.tablet
+  return SPIRAL_LAYOUT.desktop
+}
+
+interface SpiralFitOptions {
+  screenWidth: number
+  screenHeight: number
+  radius: number
+  edgePadding: number
+  cameraDistance: number
+  cameraFov: number
+  maxRadiusScale: number
+  maxHoverScale: number
+}
+
+export function getSpiralFitScale({
+  screenWidth, screenHeight, radius, edgePadding, cameraDistance, cameraFov,
+  maxRadiusScale, maxHoverScale,
+}: SpiralFitOptions) {
+  const availableWidth = Math.max(0, screenWidth - 2 * edgePadding)
+  const halfAngleTangent = Math.tan(THREE.MathUtils.degToRad(cameraFov / 2))
+    * availableWidth / Math.max(1, screenHeight)
+  // Cylinder silhouette in perspective, including its nearer, magnified side.
+  const fittedRadius = cameraDistance * halfAngleTangent / Math.hypot(1, halfAngleTangent)
+  const widestRadius = radius * maxRadiusScale * maxHoverScale
+  // Reserve the widest state up front; scrolling must not undo its own expansion.
+  return Math.min(1, fittedRadius / widestRadius)
+}
 
 export interface ScrollMotion {
   velocity: number
@@ -57,18 +86,6 @@ export function applyScrollInput(state: ScrollMotion, delta: number, now: number
 export function decayScrollMotion(state: ScrollMotion, seconds: number) {
   state.velocity *= Math.exp(-SCROLL_MOTION.deceleration * seconds)
   state.radiusDrive *= Math.exp(-SCROLL_MOTION.radiusDecay * seconds)
-}
-
-export function getResponsiveRadius(screenWidth: number, viewportWidth: number) {
-  const desktop = Math.min(RADIUS_LAYOUT.desktopMax, viewportWidth * RADIUS_LAYOUT.desktopViewportRatio)
-  const tablet = Math.max(RADIUS_LAYOUT.tabletMin, Math.min(RADIUS_LAYOUT.desktopMax, desktop * RADIUS_LAYOUT.tabletMultiplier))
-  const mobileToTablet = THREE.MathUtils.smoothstep(screenWidth, 600, 800)
-  const tabletToDesktop = THREE.MathUtils.smoothstep(screenWidth, 900, 1100)
-  return THREE.MathUtils.lerp(
-    THREE.MathUtils.lerp(RADIUS_LAYOUT.mobile, tablet, mobileToTablet),
-    desktop,
-    tabletToDesktop,
-  )
 }
 
 export const wrapPhase = (phase: number) => ((phase + 0.5) % 1 + 1) % 1 - 0.5

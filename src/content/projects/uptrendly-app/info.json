@@ -1,0 +1,23 @@
+{
+  "slug": "uptrendly-app",
+  "title": "Uptrendly App",
+  "roles": ["Product Designer", "UI/UX Designer", "Design System", "UX Audit"],
+  "projectType": "Mobile App",
+  "date": "2024",
+  "description": "Uptrendly is a data-driven influencer marketing application that streamlines collaborations by directly bridging the gap between brands and content creators.",
+  "hero": "cover.png",
+
+
+  "sections": [
+    {
+      "images":[
+        "img-01.png"
+      ]
+    },
+   {
+      "title": "Some title about the note or project",
+      "body": "Use this space to explain a design decision, a research insight, or a challenge from the project. Describe what you explored and why you chose the direction shown in the images. This is temporary copy; replace it with your own notes."
+    }
+
+  ]
+}
