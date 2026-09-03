@@ -17,7 +17,9 @@ export function usePageEntrance(scopeRef: RefObject<HTMLElement | null>) {
     if (!scope) return
 
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    const header = scope.querySelector<HTMLElement>('[data-page-header]')
+    const headerElements = Array.from(
+      scope.querySelectorAll<HTMLElement>('[data-page-header]'),
+    )
     const allTextLines = Array.from(
       scope.querySelectorAll<HTMLElement>('[data-enter-text]'),
     )
@@ -27,11 +29,9 @@ export function usePageEntrance(scopeRef: RefObject<HTMLElement | null>) {
     const allMetadata = Array.from(
       scope.querySelectorAll<HTMLElement>('[data-enter-meta]'),
     )
-    const allElements = [header, ...allTextLines, ...allImages, ...allMetadata].filter(
-      (element): element is HTMLElement => Boolean(element),
-    )
+    const allElements = [...headerElements, ...allTextLines, ...allImages, ...allMetadata]
 
-    if (header) gsap.set(header, { opacity: 0 })
+    if (headerElements.length > 0) gsap.set(headerElements, { opacity: 0 })
     if (allTextLines.length > 0) gsap.set(allTextLines, { opacity: 0, y: 24 })
     if (allImages.length > 0) {
       gsap.set(allImages, { opacity: 0 })
@@ -64,9 +64,7 @@ export function usePageEntrance(scopeRef: RefObject<HTMLElement | null>) {
 
         if (reducedMotion) {
           timeline = gsap.timeline().to(
-            [header, ...textLines, ...images, ...metadata].filter(
-              (element): element is HTMLElement => Boolean(element),
-            ),
+            [...headerElements, ...textLines, ...images, ...metadata],
             {
               opacity: 1,
               y: 0,
@@ -80,8 +78,8 @@ export function usePageEntrance(scopeRef: RefObject<HTMLElement | null>) {
 
         timeline = gsap.timeline({ defaults: { ease: 'power3.out' } })
 
-        if (header) {
-          timeline.to(header, { opacity: 1, duration: 0.38 })
+        if (headerElements.length > 0) {
+          timeline.to(headerElements, { opacity: 1, duration: 0.38 })
         }
 
         if (textLines.length > 0) {

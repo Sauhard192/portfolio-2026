@@ -1,13 +1,11 @@
 import { type ReactNode, useEffect, useRef, useState } from 'react'
 import { Routes, useLocation, type Location } from 'react-router-dom'
 import { gsap } from 'gsap'
+import { shouldAnimateRouteChange } from './routeTransitionRules'
 
 interface RouteTransitionProps {
   children: ReactNode
 }
-
-// Routes that use the cinematic transition.
-const TRANSITION_ROUTES = new Set(['/', '/contact'])
 
 export function RouteTransition({ children }: RouteTransitionProps) {
   const location = useLocation()
@@ -19,15 +17,17 @@ export function RouteTransition({ children }: RouteTransitionProps) {
   const pendingLocationRef = useRef(location)
 
   useEffect(() => {
-    if (location.key === displayLocation.key) return
+    if (location.key === displayLocation.key) {
+      setTransitionActive(false)
+      return
+    }
 
     pendingLocationRef.current = location
 
-    const shouldAnimate =
-      TRANSITION_ROUTES.has(displayLocation.pathname) &&
-      TRANSITION_ROUTES.has(location.pathname)
+    const shouldAnimate = shouldAnimateRouteChange(displayLocation.pathname, location.pathname)
 
     if (!shouldAnimate) {
+      setTransitionActive(false)
       window.scrollTo(0, 0)
       setDisplayLocation(location)
       return
@@ -38,12 +38,13 @@ export function RouteTransition({ children }: RouteTransitionProps) {
     document.body.style.overflow = 'hidden'
     setTransitionActive(true)
 
+    let timeline: gsap.core.Timeline | null = null
     const frame = requestAnimationFrame(() => {
       const dimmer = dimmerRef.current
       const curtain = curtainRef.current
       if (!dimmer || !curtain) return
 
-      const timeline = gsap.timeline({
+      timeline = gsap.timeline({
         onComplete: () => {
           // Swap pages after the curtain reaches the top.
           window.scrollTo(0, 0)
@@ -75,6 +76,7 @@ export function RouteTransition({ children }: RouteTransitionProps) {
 
     return () => {
       cancelAnimationFrame(frame)
+      timeline?.kill()
       gsap.killTweensOf([dimmerRef.current, curtainRef.current])
       document.body.style.overflow = previousBodyOverflow
     }

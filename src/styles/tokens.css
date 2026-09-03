@@ -46,6 +46,12 @@
   --letter-spacing-display: -0.02em;
 
   /* Component typography */
+  --type-media-caption-size: 1rem;
+  --type-media-caption-weight: var(--font-weight-semibold);
+  --type-media-caption-line-height: 1.5;
+  --type-media-date-size: 1rem;
+  --type-media-date-weight: var(--font-weight-medium);
+  --type-media-date-line-height: 1.5;
   --type-page-heading-size: 2rem;
 
   --type-logo-size: 3rem;
@@ -163,6 +169,8 @@
     --line-height-heading: 1.05;
 
     /* Tablet component typography */
+    --type-media-caption-size: 1rem;
+    --type-media-date-size: 0.875rem;
     --type-logo-size: 2.375rem;
     --type-nav-size: var(--font-size-display);
     --type-nav-weight: var(--font-weight-medium);
@@ -194,6 +202,8 @@
     --line-height-heading: 1.08;
 
     /* Mobile component typography */
+    --type-media-caption-size: 0.875rem;
+    --type-media-date-size: 0.8125rem;
     --type-logo-size: 2rem;
     --type-logo-letter-spacing: -1.6px;
     --type-project-title-size: clamp(2.25rem, 11vw, 3.25rem);

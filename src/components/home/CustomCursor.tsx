@@ -7,12 +7,30 @@ interface TooltipContent {
   year: string
 }
 
-export function CustomCursor() {
+interface CustomCursorProps {
+  showTooltipIcon?: boolean
+  initialTooltip?: string
+  onInitialTooltipDismiss?: () => void
+}
+
+interface CursorDetail {
+  interactive: boolean
+  tooltip?: string
+  year?: string
+}
+
+export function CustomCursor({
+  showTooltipIcon = true,
+  initialTooltip,
+  onInitialTooltipDismiss,
+}: CustomCursorProps) {
   const cursorRef = useRef<HTMLDivElement>(null)
   const target = useRef({ x: -100, y: -100 })
   const current = useRef({ x: -100, y: -100 })
   const [isInteractive, setIsInteractive] = useState(false)
-  const [tooltip, setTooltip] = useState<TooltipContent | null>(null)
+  const [tooltip, setTooltip] = useState<TooltipContent | null>(() =>
+    initialTooltip ? { title: initialTooltip, year: '' } : null,
+  )
 
   useEffect(() => {
     const finePointer = window.matchMedia('(hover: hover) and (pointer: fine)')
@@ -20,8 +38,12 @@ export function CustomCursor() {
 
     if (!finePointer.matches || reducedMotion.matches) return
 
+    setTooltip(initialTooltip ? { title: initialTooltip, year: '' } : null)
     document.documentElement.dataset.customCursor = 'enabled'
     let frame = 0
+    let scrollEndTimer = 0
+    let tooltipSuppressedByScroll = false
+    let introTooltipActive = Boolean(initialTooltip)
 
     const tick = () => {
       current.current.x += (target.current.x - current.current.x) * 0.16
@@ -45,11 +67,35 @@ export function CustomCursor() {
         ? eventTarget.closest<HTMLElement>('[data-cursor]')
         : null
 
+    const updateFromElement = (element: HTMLElement | null) => {
+      setIsInteractive(Boolean(element))
+      if (introTooltipActive) return
+      const title = element?.dataset.tooltip
+      setTooltip(title ? { title, year: element?.dataset.year ?? '' } : null)
+    }
+
+    const restoreTooltipAfterScroll = () => {
+      tooltipSuppressedByScroll = false
+      const elementAtPointer = document.elementFromPoint(target.current.x, target.current.y)
+      updateFromElement(findCursorTarget(elementAtPointer))
+    }
+
+    const handleScrollActivity = () => {
+      if (introTooltipActive) onInitialTooltipDismiss?.()
+      introTooltipActive = false
+      tooltipSuppressedByScroll = true
+      setTooltip(null)
+      window.clearTimeout(scrollEndTimer)
+      scrollEndTimer = window.setTimeout(restoreTooltipAfterScroll, 160)
+    }
+
     const handlePointerOver = (event: PointerEvent) => {
       const element = findCursorTarget(event.target)
       if (!element) return
 
       setIsInteractive(true)
+      if (tooltipSuppressedByScroll || introTooltipActive) return
+
       const title = element.dataset.tooltip
       setTooltip(title ? { title, year: element.dataset.year ?? '' } : null)
     }
@@ -60,23 +106,46 @@ export function CustomCursor() {
       if (!from || from === to) return
 
       setIsInteractive(Boolean(to))
+      if (tooltipSuppressedByScroll || introTooltipActive) return
+
       const title = to?.dataset.tooltip
       setTooltip(title ? { title, year: to?.dataset.year ?? '' } : null)
     }
 
+    const handleVirtualTarget = (event: Event) => {
+      const detail = (event as CustomEvent<CursorDetail>).detail
+      setIsInteractive(detail.interactive)
+      if (tooltipSuppressedByScroll || introTooltipActive) return
+
+      setTooltip(
+        detail.tooltip
+          ? { title: detail.tooltip, year: detail.year ?? '' }
+          : null,
+      )
+    }
+
     window.addEventListener('pointermove', handlePointerMove, { passive: true })
+    window.addEventListener('wheel', handleScrollActivity, { passive: true })
+    window.addEventListener('touchmove', handleScrollActivity, { passive: true })
+    window.addEventListener('scroll', handleScrollActivity, { passive: true })
     document.addEventListener('pointerover', handlePointerOver)
     document.addEventListener('pointerout', handlePointerOut)
+    window.addEventListener('portfolio:cursor-target', handleVirtualTarget)
     frame = requestAnimationFrame(tick)
 
     return () => {
       delete document.documentElement.dataset.customCursor
       cancelAnimationFrame(frame)
+      window.clearTimeout(scrollEndTimer)
       window.removeEventListener('pointermove', handlePointerMove)
+      window.removeEventListener('wheel', handleScrollActivity)
+      window.removeEventListener('touchmove', handleScrollActivity)
+      window.removeEventListener('scroll', handleScrollActivity)
       document.removeEventListener('pointerover', handlePointerOver)
       document.removeEventListener('pointerout', handlePointerOut)
+      window.removeEventListener('portfolio:cursor-target', handleVirtualTarget)
     }
-  }, [])
+  }, [initialTooltip, onInitialTooltipDismiss])
 
   return (
     <div
@@ -84,12 +153,13 @@ export function CustomCursor() {
       className="site-cursor"
       data-interactive={isInteractive}
       data-tooltip-visible={Boolean(tooltip)}
+      data-tooltip-icon={showTooltipIcon}
       aria-hidden="true"
     >
       <span className="site-cursor__dot" />
       <span className="site-cursor__ring" />
       <span className="site-cursor__tooltip">
-        <img className="site-cursor__arrow" src={arrowTopLeft} alt="" />
+        {showTooltipIcon && <img className="site-cursor__arrow" src={arrowTopLeft} alt="" />}
         <span>
           <strong>{tooltip?.title}</strong>
           <small>{tooltip?.year}</small>

@@ -14,8 +14,22 @@ export function HomePage() {
 
   return (
     <main ref={pageRef} className="home-page portfolio-background">
-      <SiteHeader view={view} onViewChange={setView} />
-      <InfiniteProjectGallery projects={caseStudies} view={view} />
+      <SiteHeader
+        view={view}
+        onViewChange={(nextView) => setView(nextView as HomeView)}
+      />
+      <InfiniteProjectGallery
+        projects={caseStudies.map((project) => ({
+          slug: project.slug,
+          title: project.title,
+          year: project.year,
+          href: `/case-studies/${project.slug}`,
+          gridTooltip: project.title,
+          listTooltip: project.projectType,
+          cover: project.cover,
+        }))}
+        view={view}
+      />
       <CustomCursor />
     </main>
   )

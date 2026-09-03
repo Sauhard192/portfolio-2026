@@ -3,22 +3,41 @@ import { Link } from 'react-router-dom'
 import { gsap } from 'gsap'
 import Lenis from 'lenis'
 
-import type { CaseStudy } from '../../types/caseStudy'
 import type { HomeView } from '../../types/home'
 
+export interface InfiniteGalleryItem {
+  slug: string
+  title: string
+  year: string
+  href: string
+  gridTooltip: string
+  listTooltip: string
+  cover: {
+    src: string
+    alt: string
+  }
+}
+
 interface InfiniteProjectGalleryProps {
-  projects: CaseStudy[]
+  projects: InfiniteGalleryItem[]
   view: HomeView
+  showTouchMetadata?: boolean
 }
 
 const COPIES = [0, 1, 2, 3]
 
-export function InfiniteProjectGallery({ projects, view }: InfiniteProjectGalleryProps) {
+export function InfiniteProjectGallery({
+  projects,
+  view,
+  showTouchMetadata = true,
+}: InfiniteProjectGalleryProps) {
   const galleryRef = useRef<HTMLDivElement>(null)
   const zoomLayerRef = useRef<HTMLDivElement>(null)
   const galleryTrackRef = useRef<HTMLDivElement>(null)
-  const [hoveredProject, setHoveredProject] = useState<CaseStudy | null>(null)
-  const [centeredProject, setCenteredProject] = useState<CaseStudy | null>(() => projects[0] ?? null)
+  const [hoveredProject, setHoveredProject] = useState<InfiniteGalleryItem | null>(null)
+  const [centeredProject, setCenteredProject] = useState<InfiniteGalleryItem | null>(
+    () => projects[0] ?? null,
+  )
   const previousViewRef = useRef(view)
   const selectedProject = hoveredProject ?? centeredProject
 
@@ -202,10 +221,10 @@ export function InfiniteProjectGallery({ projects, view }: InfiniteProjectGaller
                     <Link
                       className="project-card"
                       data-cursor="project"
-                      data-tooltip={project.title}
+                      data-tooltip={project.gridTooltip}
                       data-year={project.year}
                       tabIndex={copyIndex === 1 ? undefined : -1}
-                      to={`/case-studies/${project.slug}`}
+                      to={project.href}
                       key={`${copyIndex}-${project.slug}`}
                     >
                       <figure>
@@ -214,10 +233,12 @@ export function InfiniteProjectGallery({ projects, view }: InfiniteProjectGaller
                           alt={copyIndex === 1 ? project.cover.alt : ''}
                           data-enter-image
                         />
-                        <figcaption className="project-card__touch-meta" data-enter-meta>
-                          <span>{project.title}</span>
-                          <span>{project.year}</span>
-                        </figcaption>
+                        {showTouchMetadata && (
+                          <figcaption className="project-card__touch-meta" data-enter-meta>
+                            <span>{project.title}</span>
+                            <span>{project.year}</span>
+                          </figcaption>
+                        )}
                       </figure>
                     </Link>
                   ) : (
@@ -227,10 +248,10 @@ export function InfiniteProjectGallery({ projects, view }: InfiniteProjectGaller
                       data-project-index={projectIndex}
                       data-selected={selectedProject?.slug === project.slug}
                       data-enter-text
-                      data-tooltip={project.projectType}
+                      data-tooltip={project.listTooltip}
                       data-year={project.year}
                       tabIndex={copyIndex === 1 ? undefined : -1}
-                      to={`/case-studies/${project.slug}`}
+                      to={project.href}
                       onMouseEnter={() => setHoveredProject(project)}
                       onMouseLeave={() => setHoveredProject(null)}
                       onFocus={() => setHoveredProject(project)}

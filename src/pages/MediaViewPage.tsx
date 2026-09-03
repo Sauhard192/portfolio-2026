@@ -1,6 +1,9 @@
 import { useParams } from 'react-router-dom'
 
 import type { MediaCollection } from '../types/media'
+import { MediaViewer } from '../components/gallery/MediaViewer'
+import { artworks } from '../content/artworks'
+import { photographs } from '../content/photographs'
 
 interface MediaViewPageProps {
   collection: MediaCollection
@@ -9,5 +12,5 @@ interface MediaViewPageProps {
 export function MediaViewPage({ collection }: MediaViewPageProps) {
   const { slug } = useParams()
 
-  return <main className="page" data-collection={collection} data-media={slug} />
+  return <MediaViewer key={collection} collection={collection} items={collection === 'art' ? artworks : photographs} slug={slug} />
 }
