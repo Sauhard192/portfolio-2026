@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { getSwipeDirection, mediaDateTime, wrapMediaIndex } from '../src/components/gallery/mediaNavigation.ts'
+import { getSwipeDirection, mediaDateLabel, wrapMediaIndex } from '../src/components/gallery/mediaNavigation.ts'
 import { shouldAnimateRouteChange } from '../src/components/layout/routeTransitionRules.ts'
 
 test('image navigation wraps within its own collection, including empty and singleton collections', () => {
@@ -19,10 +19,12 @@ test('intentional horizontal swipes navigate in the expected direction', () => {
   assert.equal(getSwipeDirection(80, 0, 1500), 0)
 })
 
-test('full human dates produce machine-readable dates without changing displayed text', () => {
-  assert.equal(mediaDateTime('July 19, 2021'), '2021-07-19')
-  assert.equal(mediaDateTime('December 2, 2024'), '2024-12-02')
-  assert.equal(mediaDateTime('Unknown'), undefined)
+test('optional location has a separator only when populated', () => {
+  assert.equal(mediaDateLabel('July 19, 2025', 'Lumbini'), 'Lumbini · July 19, 2025')
+  assert.equal(mediaDateLabel('July 19, 2025', ''), 'July 19, 2025')
+  assert.equal(mediaDateLabel('July 19, 2025', '   '), 'July 19, 2025')
+  assert.equal(mediaDateLabel('July 19, 2025'), 'July 19, 2025')
+  assert.equal(mediaDateLabel('2025', ' Kathmandu '), 'Kathmandu · 2025')
 })
 
 test('gallery-to-viewer and viewer-to-gallery use cinematic transitions', () => {

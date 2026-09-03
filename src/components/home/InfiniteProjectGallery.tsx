@@ -1,9 +1,10 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { gsap } from 'gsap'
 import Lenis from 'lenis'
 
 import type { HomeView } from '../../types/home'
+import { gridCycleLength } from './gridCycle'
 
 export interface InfiniteGalleryItem {
   slug: string
@@ -14,6 +15,7 @@ export interface InfiniteGalleryItem {
   listTooltip: string
   cover: {
     src: string
+    srcSet?: string
     alt: string
   }
 }
@@ -40,6 +42,34 @@ export function InfiniteProjectGallery({
   )
   const previousViewRef = useRef(view)
   const selectedProject = hoveredProject ?? centeredProject
+  const [gridLayout, setGridLayout] = useState({ count: projects.length, cardWidth: 280 })
+  const cycleItems = view === 'grid'
+    ? Array.from({ length: gridLayout.count }, (_, index) => projects[index % projects.length])
+    : projects
+
+  useLayoutEffect(() => {
+    if (view !== 'grid' || !projects.length) return
+    const cycle = galleryTrackRef.current?.querySelector<HTMLElement>('.project-cycle')
+    const card = cycle?.querySelector<HTMLElement>('.project-card')
+    if (!cycle || !card) return
+    const measure = () => {
+      const style = getComputedStyle(cycle)
+      const columns = Math.max(1, Number.parseInt(style.getPropertyValue('--gallery-columns')) || 4)
+      const rowStep = card.offsetHeight + (Number.parseFloat(style.rowGap) || 0)
+      // Enough repeated rows for short collections and tall viewports.
+      const minimumRows = Math.ceil(window.innerHeight / Math.max(1, rowStep)) + 1
+      const count = gridCycleLength(projects.length, columns, minimumRows)
+      const cardWidth = card.offsetWidth
+      setGridLayout((previous) => previous.count === count && previous.cardWidth === cardWidth
+        ? previous : { count, cardWidth })
+    }
+    measure()
+    const observer = new ResizeObserver(measure)
+    observer.observe(cycle)
+    observer.observe(card)
+    window.addEventListener('resize', measure)
+    return () => { observer.disconnect(); window.removeEventListener('resize', measure) }
+  }, [projects.length, view])
 
   useEffect(() => {
     if (previousViewRef.current === view) return
@@ -146,7 +176,8 @@ export function InfiniteProjectGallery({
     }
 
     const handleResize = () => {
-      cycleHeight = firstCycle.getBoundingClientRect().height
+      // Measure layout height, not the temporary scroll-zoom transform.
+      cycleHeight = Number.parseFloat(getComputedStyle(firstCycle).height)
       updateTrackPosition(lenis.animatedScroll)
       measureListItems(lenis.animatedScroll)
     }
@@ -203,7 +234,7 @@ export function InfiniteProjectGallery({
       window.history.scrollRestoration = previousScrollRestoration
       window.scrollTo(0, 0)
     }
-  }, [view])
+  }, [view, projects])
 
   return (
     <div ref={galleryRef} id="project-gallery" className={`project-gallery project-gallery--${view}`}>
@@ -216,20 +247,25 @@ export function InfiniteProjectGallery({
                 key={`${view}-${copyIndex}`}
                 aria-hidden={copyIndex !== 1}
               >
-                {projects.map((project, projectIndex) =>
+                {cycleItems.map((project, projectIndex) =>
                   view === 'grid' ? (
                     <Link
                       className="project-card"
                       data-cursor="project"
                       data-tooltip={project.gridTooltip}
                       data-year={project.year}
-                      tabIndex={copyIndex === 1 ? undefined : -1}
+                      tabIndex={copyIndex === 1 && projectIndex < projects.length ? undefined : -1}
+                      aria-hidden={projectIndex >= projects.length ? true : undefined}
+                      aria-label={project.title}
                       to={project.href}
-                      key={`${copyIndex}-${project.slug}`}
+                      key={`${copyIndex}-${projectIndex}-${project.slug}`}
                     >
                       <figure>
                         <img
                           src={project.cover.src}
+                          srcSet={project.cover.srcSet}
+                          sizes={project.cover.srcSet ? `${gridLayout.cardWidth}px` : undefined}
+                          decoding="async"
                           alt={copyIndex === 1 ? project.cover.alt : ''}
                           data-enter-image
                         />

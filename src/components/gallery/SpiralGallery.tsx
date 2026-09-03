@@ -4,6 +4,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import * as THREE from 'three'
 
 import type { MediaCollection, MediaItem } from '../../types/media'
+import { createPosterTexture } from './posterTexture'
 import {
   applyScrollInput,
   bendPosterGeometry,
@@ -194,16 +195,25 @@ function SpiralScene({ collection, items, motion, onReady }: SpiralSceneProps) {
   const { camera, gl, size, viewport } = useThree()
   const compact = size.width <= 700
   const slotCount = HELIX_TURNS * (compact ? MOBILE_CARDS_PER_TURN : DESKTOP_CARDS_PER_TURN)
-  const texture = useLoader(THREE.TextureLoader, items[0].image.src)
+  const imageSources = useMemo(() => [...new Set(items.map((item) => item.image.spiralSrc))], [items])
+  const loadedTextures = useLoader(THREE.TextureLoader, imageSources)
+  const textures = useMemo(() => {
+    const bySource = new Map(imageSources.map((src, index) => [src, loadedTextures[index]]))
+    return items.map((item) => createPosterTexture(
+      bySource.get(item.image.spiralSrc)!,
+      item.image.width / item.image.height,
+      CARD_ASPECT_RATIO,
+    ))
+  }, [imageSources, items, loadedTextures])
   const baseRadius = getResponsiveRadius(size.width, viewport.width)
   const cardWidth = CARD_WIDTH_MULTIPLIER * (compact
     ? MOBILE_CARD_WIDTH
     : Math.min(DESKTOP_CARD_WIDTH_MAX, viewport.height * DESKTOP_CARD_WIDTH_VIEWPORT_RATIO))
   const cardHeight = cardWidth / CARD_ASPECT_RATIO
-  const sourceAspect = items[0].image.width / items[0].image.height
   const { geometry, unwrappedX } = useMemo(
-    () => createPosterGeometry(cardWidth, cardHeight, sourceAspect, baseRadius),
-    [baseRadius, cardHeight, cardWidth, sourceAspect],
+    // Full UVs: each texture handles its own aspect-ratio crop.
+    () => createPosterGeometry(cardWidth, cardHeight, CARD_ASPECT_RATIO, baseRadius),
+    [baseRadius, cardHeight, cardWidth],
   )
   const meshRefs = useRef<Array<THREE.Mesh | null>>([])
   const materialRefs = useRef<Array<THREE.MeshBasicMaterial | null>>([])
@@ -211,12 +221,17 @@ function SpiralScene({ collection, items, motion, onReady }: SpiralSceneProps) {
   const cameraZ = useRef(CAMERA_DISTANCE)
 
   useEffect(() => {
-    texture.colorSpace = THREE.SRGBColorSpace
-    texture.anisotropy = Math.min(4, gl.capabilities.getMaxAnisotropy())
-    texture.needsUpdate = true
+    for (const texture of textures) {
+      texture.anisotropy = Math.min(4, gl.capabilities.getMaxAnisotropy())
+      texture.needsUpdate = true
+    }
+    return () => textures.forEach((texture) => texture.dispose())
+  }, [gl, textures])
+
+  useEffect(() => {
     const readyFrame = requestAnimationFrame(onReady)
     return () => cancelAnimationFrame(readyFrame)
-  }, [gl, onReady, texture])
+  }, [onReady, textures])
 
   useFrame((_, delta) => {
     const state = motion.current
@@ -255,7 +270,7 @@ function SpiralScene({ collection, items, motion, onReady }: SpiralSceneProps) {
       const material = materialRefs.current[index]
       if (!mesh || !material) continue
 
-      const { phase } = getSpiralSlot(index, slotCount, state.position, items.length)
+      const { phase, itemIndex } = getSpiralSlot(index, slotCount, state.position, items.length)
       const { angle: theta, y } = getHelixPose(phase, HELIX_TURNS, verticalSpan)
       const z = Math.cos(theta) * radius
       const depth = (z + radius) / (radius * 2)
@@ -264,6 +279,8 @@ function SpiralScene({ collection, items, motion, onReady }: SpiralSceneProps) {
       mesh.rotation.y = theta
       mesh.renderOrder = Math.round(depth * 100)
       material.color.setScalar(0.48 + depth * 0.52)
+      // Recycled cards display the same item that their click handler opens.
+      material.map = textures[itemIndex]
     }
   })
 
@@ -301,7 +318,7 @@ function SpiralScene({ collection, items, motion, onReady }: SpiralSceneProps) {
         ref={(material) => {
           materialRefs.current[index] = material
         }}
-        map={texture}
+        map={textures[getSpiralSlot(index, slotCount, motion.current.position, items.length).itemIndex]}
         side={THREE.DoubleSide}
         toneMapped={false}
       />

@@ -8,7 +8,11 @@ export interface MediaItem {
     alt: string
     width: number
     height: number
+    thumbnail: { src: string; srcSet: string }
+    spiralSrc: string
   }
   caption: string
-  date: string
+  date: string // Formatted display text, generated from info.json's date.
+  dateISO: string // YYYY-MM-DD or YYYY; shared sorting source.
+  location?: string
 }

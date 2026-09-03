@@ -6,7 +6,7 @@ import { usePageEntrance } from '../../hooks/usePageEntrance'
 import type { MediaCollection, MediaItem } from '../../types/media'
 import { CustomCursor } from '../home/CustomCursor'
 import { SiteHeader } from '../layout/SiteHeader'
-import { getSwipeDirection, mediaDateTime, wrapMediaIndex } from './mediaNavigation'
+import { getSwipeDirection, mediaDateLabel, wrapMediaIndex } from './mediaNavigation'
 
 interface MediaViewerProps {
   collection: MediaCollection
@@ -105,7 +105,7 @@ export function MediaViewer({ collection, items, slug }: MediaViewerProps) {
             </nav>
           )}
           <p className="media-view__sr-only" role="status" aria-live="polite" aria-atomic="true">
-            {item.title}. {index + 1} of {items.length}. {item.caption} {item.date}.
+            {item.title}. {index + 1} of {items.length}. {item.caption} {mediaDateLabel(item.date, item.location)}.
           </p>
         </>
       ) : (
@@ -169,13 +169,13 @@ function MediaFigure({ item, previousHref, nextHref, canNavigate }: MediaFigureP
       )}
       <figure className="media-view__figure">
         <div className="media-view__image-box" aria-busy={status === 'loading'}>
-          <img ref={imageRef} src={item.image.src} alt={item.image.alt} width={item.image.width} height={item.image.height} draggable={false} onLoad={imageReady} onError={() => setStatus('error')} data-status={status} />
+          <img ref={imageRef} src={item.image.src} alt={item.image.alt} width={item.image.width} height={item.image.height} decoding="async" draggable={false} onLoad={imageReady} onError={() => setStatus('error')} data-status={status} />
           {status === 'loading' && showLoading && <p className="media-view__image-status" role="status">Loading image…</p>}
           {status === 'error' && <p className="media-view__image-status" role="status">This image couldn’t load. You can still browse the other images.</p>}
         </div>
         <figcaption className="media-view__metadata" data-enter-meta>
           <p>{item.caption}</p>
-          <time dateTime={mediaDateTime(item.date)}>{item.date}</time>
+          <time dateTime={item.dateISO.length === 10 ? item.dateISO : undefined}>{mediaDateLabel(item.date, item.location)}</time>
         </figcaption>
       </figure>
     </div>

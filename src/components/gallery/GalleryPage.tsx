@@ -4,6 +4,7 @@ import {
   Suspense,
   useCallback,
   useEffect,
+  useMemo,
   useRef,
   useState,
   type ErrorInfo,
@@ -81,7 +82,7 @@ export function GalleryPage({ collection, items }: GalleryPageProps) {
     }
   }, [view])
 
-  const gridItems = items.map((item) => ({
+  const gridItems = useMemo(() => items.map((item) => ({
     slug: item.slug,
     title: item.title,
     year: item.date,
@@ -89,10 +90,11 @@ export function GalleryPage({ collection, items }: GalleryPageProps) {
     gridTooltip: 'VIEW',
     listTooltip: 'VIEW',
     cover: {
-      src: item.image.src,
+      src: item.image.thumbnail.src,
+      srcSet: item.image.thumbnail.srcSet,
       alt: item.image.alt,
     },
-  }))
+  })), [collection, items])
 
   const handleViewChange = (nextView: MediaGalleryView) => {
     if (nextView !== 'spiral') setShowScrollHint(false)
@@ -114,7 +116,11 @@ export function GalleryPage({ collection, items }: GalleryPageProps) {
       />
 
       <div ref={viewRef} className="media-gallery-page__view" key={view}>
-        {view === 'grid' ? (
+        {items.length === 0 ? (
+          <section className="media-view__empty" data-enter-text>
+            <p>No {collection === 'art' ? 'artworks' : 'photographs'} yet.</p>
+          </section>
+        ) : view === 'grid' ? (
           <InfiniteProjectGallery
             projects={gridItems}
             view="grid"
@@ -130,7 +136,7 @@ export function GalleryPage({ collection, items }: GalleryPageProps) {
       </div>
 
       <CustomCursor
-        initialTooltip={showScrollHint && view === 'spiral' ? 'SCROLL' : undefined}
+        initialTooltip={items.length > 0 && showScrollHint && view === 'spiral' ? 'SCROLL' : undefined}
         onInitialTooltipDismiss={dismissScrollHint}
       />
     </main>
