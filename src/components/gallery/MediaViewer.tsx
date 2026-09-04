@@ -7,6 +7,7 @@ import type { MediaCollection, MediaItem } from '../../types/media'
 import { CustomCursor } from '../home/CustomCursor'
 import { SiteHeader } from '../layout/SiteHeader'
 import { getSwipeDirection, mediaDateLabel, wrapMediaIndex } from './mediaNavigation'
+import { ProgressiveImage } from '../ui/ProgressiveImage'
 
 interface MediaViewerProps {
   collection: MediaCollection
@@ -128,23 +129,13 @@ interface MediaFigureProps {
 
 function MediaFigure({ item, previousHref, nextHref, canNavigate }: MediaFigureProps) {
   const ref = useRef<HTMLDivElement>(null)
-  const imageRef = useRef<HTMLImageElement>(null)
   const [ratio, setRatio] = useState(item.image.width / item.image.height)
-  const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading')
-  const [showLoading, setShowLoading] = useState(false)
 
-  const imageReady = () => {
-    const image = imageRef.current
-    if (!image?.naturalWidth) return
+  const imageReady = (image: HTMLImageElement) => {
     setRatio(image.naturalWidth / image.naturalHeight)
-    setStatus('ready')
   }
 
   useLayoutEffect(() => {
-    if (imageRef.current?.complete) {
-      if (imageRef.current.naturalWidth) imageReady()
-      else setStatus('error')
-    }
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
     // Only this content fades between images; the header stays mounted.
     const context = gsap.context(() => {
@@ -152,12 +143,6 @@ function MediaFigure({ item, previousHref, nextHref, canNavigate }: MediaFigureP
     }, ref)
     return () => context.revert()
   }, [])
-
-  useEffect(() => {
-    if (status !== 'loading') return
-    const timeout = window.setTimeout(() => setShowLoading(true), 400)
-    return () => window.clearTimeout(timeout)
-  }, [status])
 
   return (
     <div ref={ref} className="media-view__item" style={{ '--media-aspect-ratio': ratio } as CSSProperties}>
@@ -168,10 +153,8 @@ function MediaFigure({ item, previousHref, nextHref, canNavigate }: MediaFigureP
         </>
       )}
       <figure className="media-view__figure">
-        <div className="media-view__image-box" aria-busy={status === 'loading'}>
-          <img ref={imageRef} src={item.image.src} alt={item.image.alt} width={item.image.width} height={item.image.height} decoding="async" draggable={false} onLoad={imageReady} onError={() => setStatus('error')} data-status={status} />
-          {status === 'loading' && showLoading && <p className="media-view__image-status" role="status">Loading image…</p>}
-          {status === 'error' && <p className="media-view__image-status" role="status">This image couldn’t load. You can still browse the other images.</p>}
+        <div className="media-view__image-box">
+          <ProgressiveImage fill src={item.image.src} alt={item.image.alt} width={item.image.width} height={item.image.height} decoding="async" draggable={false} onReady={imageReady} />
         </div>
         <figcaption className="media-view__metadata" data-enter-meta>
           <p>{item.caption}</p>

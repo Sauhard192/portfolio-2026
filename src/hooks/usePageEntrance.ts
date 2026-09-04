@@ -1,4 +1,4 @@
-import { type RefObject, useLayoutEffect } from 'react'
+import { type RefObject, useLayoutEffect, useRef } from 'react'
 import { gsap } from 'gsap'
 
 const VIEWPORT_EDGE_BUFFER = 64
@@ -11,25 +11,29 @@ const isVisibleInViewport = (element: HTMLElement) => {
   )
 }
 
-export function usePageEntrance(scopeRef: RefObject<HTMLElement | null>) {
+export function usePageEntrance(scopeRef: RefObject<HTMLElement | null>, view?: string) {
+  const previousView = useRef(view)
   useLayoutEffect(() => {
     const scope = scopeRef.current
     if (!scope) return
+    const switchingView = previousView.current !== view
+    previousView.current = view
+    // Other view switches keep their existing whole-surface fade.
+    if (switchingView && view !== 'grid') return
 
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
     const headerElements = Array.from(
-      scope.querySelectorAll<HTMLElement>('[data-page-header]'),
+      switchingView ? [] : scope.querySelectorAll<HTMLElement>('[data-page-header]'),
     )
     const allTextLines = Array.from(
       scope.querySelectorAll<HTMLElement>('[data-enter-text]'),
     )
-    const allImages = Array.from(
+    let allImages = Array.from(
       scope.querySelectorAll<HTMLElement>('[data-enter-image]'),
     )
     const allMetadata = Array.from(
       scope.querySelectorAll<HTMLElement>('[data-enter-meta]'),
     )
-    const allElements = [...headerElements, ...allTextLines, ...allImages, ...allMetadata]
 
     if (headerElements.length > 0) gsap.set(headerElements, { opacity: 0 })
     if (allTextLines.length > 0) gsap.set(allTextLines, { opacity: 0, y: 24 })
@@ -43,7 +47,13 @@ export function usePageEntrance(scopeRef: RefObject<HTMLElement | null>) {
     const gallery = scope.querySelector<HTMLElement>('.project-gallery')
 
     const startEntrance = () => {
+      cancelAnimationFrame(entranceFrame)
       entranceFrame = requestAnimationFrame(() => {
+        // Let native scroll and Lenis settle the repeated track before measuring.
+        entranceFrame = requestAnimationFrame(() => {
+        // Responsive cycle sizing may have added cards since the first render.
+        allImages = Array.from(scope.querySelectorAll<HTMLElement>('[data-enter-image]'))
+        if (allImages.length) gsap.set(allImages, { opacity: 0 })
         const textLines = allTextLines.filter(isVisibleInViewport)
         const visibleImages = allImages.filter(isVisibleInViewport)
         const images = gsap.utils.shuffle([...visibleImages])
@@ -110,6 +120,7 @@ export function usePageEntrance(scopeRef: RefObject<HTMLElement | null>) {
             '+=0.15',
           )
         }
+        })
       })
     }
 
@@ -123,9 +134,10 @@ export function usePageEntrance(scopeRef: RefObject<HTMLElement | null>) {
       gallery?.removeEventListener('portfolio:gallery-ready', startEntrance)
       cancelAnimationFrame(entranceFrame)
       timeline?.kill()
+      const allElements = [...headerElements, ...allTextLines, ...allImages, ...allMetadata]
       if (allElements.length > 0) {
         gsap.set(allElements, { clearProps: 'opacity,transform' })
       }
     }
-  }, [scopeRef])
+  }, [scopeRef, view])
 }

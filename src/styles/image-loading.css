@@ -1,0 +1,67 @@
+.progressive-image {
+  position: relative;
+  display: block;
+  width: 100%;
+  aspect-ratio: var(--image-ratio, auto);
+  isolation: isolate;
+}
+.progressive-image[data-fill='true'] { height: 100%; aspect-ratio: auto; }
+.progressive-image > img { display: block; width: 100%; }
+.progressive-image > img {
+  opacity: 0;
+  transition: opacity var(--image-fade-duration) var(--ease-out);
+}
+.progressive-image[data-image-status='ready'] > img { opacity: 1; }
+.progressive-image[data-cached='true'] > img { transition-duration: 0s; }
+.progressive-image[data-in-view='false'] > .image-skeleton::after { animation-play-state: paused; }
+.image-skeleton {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: var(--image-skeleton-base);
+  pointer-events: none;
+  transition: opacity var(--image-fade-duration) var(--ease-out);
+}
+.image-skeleton::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(100deg, transparent 20%, var(--image-skeleton-highlight) 50%, transparent 80%);
+  animation: image-shimmer 1.6s linear infinite;
+}
+.progressive-image[data-image-status='ready'] > .image-skeleton { opacity: 0; }
+.progressive-image:not([data-image-status='loading']) > .image-skeleton::after { animation: none; }
+.progressive-image[data-cached='true'] > .image-skeleton { display: none; }
+.image-error {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: var(--space-2);
+  color: var(--color-text-primary);
+  background: var(--image-skeleton-base);
+  font-size: var(--font-size-caption);
+  line-height: var(--line-height-caption);
+  text-align: center;
+}
+.image-error button, .spiral-gallery__errors button {
+  min-height: 44px;
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid currentColor;
+  border-radius: var(--radius-pill);
+  color: var(--color-text-primary);
+  background: var(--color-surface);
+  cursor: pointer;
+  pointer-events: auto;
+}
+.image-error button:hover, .spiral-gallery__errors button:hover { background: var(--color-background); }
+.image-error button:active, .spiral-gallery__errors button:active { transform: scale(0.97); }
+@keyframes image-shimmer { from { transform: translateX(-100%); } to { transform: translateX(100%); } }
+@media (prefers-reduced-motion: reduce) {
+  .image-skeleton::after { animation: none; }
+  .progressive-image > img, .image-skeleton { transition: none; }
+}

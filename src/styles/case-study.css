@@ -44,6 +44,7 @@
 .case-study__hero,
 .case-study__image { margin: 0; background: var(--color-background); overflow: hidden; }
 .case-study__hero { aspect-ratio: var(--case-image-ratio, 16 / 9); }
+.case-study__hero .progressive-image { height: 100%; aspect-ratio: auto; }
 .case-study__hero img { width: 100%; height: 100%; object-fit: cover; }
 /* Content images keep their original proportions at every breakpoint. */
 .case-study__image img { width: 100%; height: auto; object-fit: contain; }
@@ -117,6 +118,7 @@
   line-height: var(--line-height-display);
 }
 .next-project__link {
+  position: relative;
   display: grid;
   grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
   align-items: center;
@@ -124,12 +126,15 @@
   min-width: 0;
 }
 .next-project__preview { position: relative; min-width: 0; }
+.next-project__hit-area { position: absolute; inset: 0; z-index: 2; }
+.next-project__preview .progressive-image { aspect-ratio: 1; }
+.next-project__preview .progressive-image:has(.image-error) { z-index: 3; }
 .next-project__preview img {
   width: 100%;
   aspect-ratio: 1;
   height: auto;
   object-fit: cover;
-  transition: transform var(--duration-ui) var(--ease-out);
+  transition: transform var(--duration-ui) var(--ease-out), opacity var(--image-fade-duration) var(--ease-out);
 }
 .next-project__title {
   font-size: var(--type-case-body-size);

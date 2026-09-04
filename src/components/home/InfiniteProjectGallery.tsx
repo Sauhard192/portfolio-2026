@@ -1,5 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { ProgressiveImage } from '../ui/ProgressiveImage'
 import { gsap } from 'gsap'
 import Lenis from 'lenis'
 
@@ -74,6 +75,7 @@ export function InfiniteProjectGallery({
   useEffect(() => {
     if (previousViewRef.current === view) return
     previousViewRef.current = view
+    if (view === 'grid') return
 
     const surface = galleryRef.current?.querySelector<HTMLElement>('.project-gallery__surface')
     if (!surface) return
@@ -101,6 +103,16 @@ export function InfiniteProjectGallery({
     const galleryTrack = galleryTrackRef.current
     const firstCycle = galleryTrack?.querySelector<HTMLElement>('.project-cycle')
     if (!gallery || !zoomLayer || !galleryTrack || !firstCycle) return
+
+    // Wait for responsive repeat rows before positioning or announcing readiness.
+    if (view === 'grid') {
+      const card = firstCycle.querySelector<HTMLElement>('.project-card')
+      const style = getComputedStyle(firstCycle)
+      const columns = Math.max(1, Number.parseInt(style.getPropertyValue('--gallery-columns')) || 4)
+      const rowStep = (card?.offsetHeight ?? 0) + (Number.parseFloat(style.rowGap) || 0)
+      const rows = Math.ceil(window.innerHeight / Math.max(1, rowStep)) + 1
+      if (firstCycle.children.length !== gridCycleLength(projects.length, columns, rows)) return
+    }
 
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
     const previousScrollRestoration = window.history.scrollRestoration
@@ -234,7 +246,7 @@ export function InfiniteProjectGallery({
       window.history.scrollRestoration = previousScrollRestoration
       window.scrollTo(0, 0)
     }
-  }, [view, projects])
+  }, [view, projects, gridLayout.count])
 
   return (
     <div ref={galleryRef} id="project-gallery" className={`project-gallery project-gallery--${view}`}>
@@ -249,25 +261,26 @@ export function InfiniteProjectGallery({
               >
                 {cycleItems.map((project, projectIndex) =>
                   view === 'grid' ? (
-                    <Link
+                    <div
                       className="project-card"
                       data-cursor="project"
                       data-tooltip={project.gridTooltip}
                       data-year={project.year}
-                      tabIndex={copyIndex === 1 && projectIndex < projects.length ? undefined : -1}
                       aria-hidden={projectIndex >= projects.length ? true : undefined}
-                      aria-label={project.title}
-                      to={project.href}
                       key={`${copyIndex}-${projectIndex}-${project.slug}`}
                     >
+                      <Link className="project-card__link" to={project.href} aria-label={project.title}
+                        tabIndex={copyIndex === 1 && projectIndex < projects.length ? undefined : -1} />
                       <figure>
-                        <img
+                        <ProgressiveImage
+                          enterImage
+                          retryTabIndex={copyIndex === 1 && projectIndex < projects.length ? 0 : -1}
                           src={project.cover.src}
                           srcSet={project.cover.srcSet}
                           sizes={project.cover.srcSet ? `${gridLayout.cardWidth}px` : undefined}
                           decoding="async"
                           alt={copyIndex === 1 ? project.cover.alt : ''}
-                          data-enter-image
+                          className="project-card__image"
                         />
                         {showTouchMetadata && (
                           <figcaption className="project-card__touch-meta" data-enter-meta>
@@ -276,7 +289,7 @@ export function InfiniteProjectGallery({
                           </figcaption>
                         )}
                       </figure>
-                    </Link>
+                    </div>
                   ) : (
                     <Link
                       className="project-list-item"
@@ -304,8 +317,8 @@ export function InfiniteProjectGallery({
         </div>
 
         {view === 'list' && (
-          <div className="project-list-preview" data-visible={Boolean(selectedProject)} aria-hidden="true">
-            <img src={selectedProject?.cover.src ?? projects[0]?.cover.src} alt="" />
+          <div className="project-list-preview" data-visible={Boolean(selectedProject)}>
+            <ProgressiveImage fill src={selectedProject?.cover.src ?? projects[0]?.cover.src} alt="" />
           </div>
         )}
       </div>

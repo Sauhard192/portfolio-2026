@@ -10,7 +10,7 @@ import type { HomeView } from '../types/home'
 export function HomePage() {
   const pageRef = useRef<HTMLElement>(null)
   const [view, setView] = useState<HomeView>('grid')
-  usePageEntrance(pageRef)
+  usePageEntrance(pageRef, view)
 
   return (
     <main ref={pageRef} className="home-page portfolio-background">

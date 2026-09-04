@@ -1,10 +1,11 @@
-import { Suspense, useEffect, useMemo, useRef, useState } from 'react'
-import { Canvas, type ThreeEvent, useFrame, useLoader, useThree } from '@react-three/fiber'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { Canvas, type ThreeEvent, useFrame, useThree } from '@react-three/fiber'
 import { Link, useNavigate } from 'react-router-dom'
 import * as THREE from 'three'
 
 import type { MediaCollection, MediaItem } from '../../types/media'
-import { createPosterTexture } from './posterTexture'
+import { useSpiralImages } from './useSpiralImages'
+import { createSpiralPlaceholders } from './spiralPlaceholders'
 import {
   applyScrollInput,
   bendPosterGeometry,
@@ -61,6 +62,8 @@ const dispatchCursorTarget = (interactive: boolean, tooltip?: string) => {
 export default function SpiralGallery({ collection, items }: SpiralGalleryProps) {
   const rootRef = useRef<HTMLDivElement>(null)
   const [ready, setReady] = useState(false)
+  const [errors, setErrors] = useState<Array<{ title: string; retry: () => void }>>([])
+  const markReady = useCallback(() => setReady(true), [])
   const motionRef = useRef<SpiralMotion>({
     position: 0,
     velocity: 0,
@@ -160,15 +163,22 @@ export default function SpiralGallery({ collection, items }: SpiralGalleryProps)
           dispatchCursorTarget(false)
         }}
       >
-        <Suspense fallback={null}>
           <SpiralScene
             collection={collection}
             items={items}
             motion={motionRef}
-            onReady={() => setReady(true)}
+            onReady={markReady}
+            onErrors={setErrors}
           />
-        </Suspense>
       </Canvas>
+
+      {errors.length > 0 && <div className="spiral-gallery__errors" role="status">
+        <span>Image unavailable</span>
+        {errors.map((error, index) => <button key={index} type="button" data-cursor="interactive"
+          onPointerDown={event => event.stopPropagation()} onClick={error.retry}>
+          Retry: {error.title}
+        </button>)}
+      </div>}
 
       <nav className="spiral-gallery__accessible-list" aria-label={`${collection} items`}>
         {items.map((item) => (
@@ -184,23 +194,20 @@ export default function SpiralGallery({ collection, items }: SpiralGalleryProps)
 interface SpiralSceneProps extends SpiralGalleryProps {
   motion: React.RefObject<SpiralMotion>
   onReady: () => void
+  onErrors: (items: Array<{ title: string; retry: () => void }>) => void
 }
 
-function SpiralScene({ collection, items, motion, onReady }: SpiralSceneProps) {
+function SpiralScene({ collection, items, motion, onReady, onErrors }: SpiralSceneProps) {
   const navigate = useNavigate()
   const { camera, gl, size, viewport } = useThree()
   const layout = getSpiralLayout(size.width)
   const slotCount = HELIX_TURNS * layout.cardsPerTurn
-  const imageSources = useMemo(() => [...new Set(items.map((item) => item.image.spiralSrc))], [items])
-  const loadedTextures = useLoader(THREE.TextureLoader, imageSources)
-  const textures = useMemo(() => {
-    const bySource = new Map(imageSources.map((src, index) => [src, loadedTextures[index]]))
-    return items.map((item) => createPosterTexture(
-      bySource.get(item.image.spiralSrc)!,
-      item.image.width / item.image.height,
-      CARD_ASPECT_RATIO,
-    ))
-  }, [imageSources, items, loadedTextures])
+  const images = useSpiralImages(items, CARD_ASPECT_RATIO, Math.min(4, gl.capabilities.getMaxAnisotropy()), onErrors)
+  const placeholders = useMemo(createSpiralPlaceholders, [])
+  const motionPreference = useMemo(() => window.matchMedia('(prefers-reduced-motion: reduce)'), [])
+  const imageMaterials = useRef<Array<THREE.MeshBasicMaterial | null>>([])
+  const firstFrame = useRef(false)
+  const readyFrame = useRef(0)
   const baseRadius = layout.radius
   const cardWidth = layout.cardWidth
   const cardHeight = cardWidth / CARD_ASPECT_RATIO
@@ -225,23 +232,22 @@ function SpiralScene({ collection, items, motion, onReady }: SpiralSceneProps) {
   const cameraZ = useRef(CAMERA_DISTANCE)
 
   useEffect(() => {
-    for (const texture of textures) {
-      texture.anisotropy = Math.min(4, gl.capabilities.getMaxAnisotropy())
-      texture.needsUpdate = true
+    placeholders.shimmer.needsUpdate = placeholders.error.needsUpdate = true
+    return () => {
+      cancelAnimationFrame(readyFrame.current)
+      firstFrame.current = false
+      placeholders.shimmer.dispose()
+      placeholders.error.dispose()
     }
-    return () => textures.forEach((texture) => texture.dispose())
-  }, [gl, textures])
-
-  useEffect(() => {
-    const readyFrame = requestAnimationFrame(onReady)
-    return () => cancelAnimationFrame(readyFrame)
-  }, [onReady, textures])
+  }, [placeholders])
 
   useFrame((_, delta) => {
     const state = motion.current
     if (!state || !state.pageVisible) return
 
     const safeDelta = Math.min(delta, 0.05)
+    const reducedMotion = motionPreference.matches
+    if (!reducedMotion) placeholders.shimmer.offset.x -= safeDelta / 1.6
     const idleSpeed = 1 / (HELIX_TURNS * IDLE_ROTATION_SECONDS)
     const idleMultiplier = state.hovering ? HOVER_IDLE_SPEED_MULTIPLIER : 1
     // Idle and input move along the same path, without rotating the path itself.
@@ -284,8 +290,25 @@ function SpiralScene({ collection, items, motion, onReady }: SpiralSceneProps) {
       mesh.rotation.y = theta
       mesh.renderOrder = Math.round(depth * 100)
       material.color.setScalar(0.48 + depth * 0.52)
-      // Recycled cards display the same item that their click handler opens.
-      material.map = textures[itemIndex]
+      const image = images[itemIndex]
+      const imageMaterial = imageMaterials.current[index]
+      const placeholder = image.status === 'error' ? placeholders.error : placeholders.shimmer
+      if (material.map !== placeholder) { material.map = placeholder; material.needsUpdate = true }
+      const opacity = image.status === 'ready' ? Math.min(1, (performance.now() - image.readyAt) / 250) : 0
+      material.visible = opacity < 1
+      if (imageMaterial) {
+        if (imageMaterial.map !== image.texture) { imageMaterial.map = image.texture; imageMaterial.needsUpdate = true }
+        imageMaterial.visible = image.status === 'ready'
+        imageMaterial.opacity = reducedMotion && image.status === 'ready' ? 1 : opacity
+        imageMaterial.color.copy(material.color)
+        // Child draws immediately after its own skeleton, not all other cards.
+        mesh.children[0].renderOrder = mesh.renderOrder + 1
+      }
+    }
+    // Reveal after the first positioned skeleton frame, independent of image IO.
+    if (!firstFrame.current) {
+      firstFrame.current = true
+      readyFrame.current = requestAnimationFrame(onReady)
     }
   })
 
@@ -316,6 +339,7 @@ function SpiralScene({ collection, items, motion, onReady }: SpiralSceneProps) {
         event.stopPropagation()
         const { itemIndex } = getSpiralSlot(index, slotCount, motion.current.position, items.length)
         const item = items[itemIndex]
+        if (images[itemIndex].status === 'error') { images[itemIndex].retry(); return }
         navigate(`/${collection}/${item.slug}`)
       }}
       key={index}
@@ -324,10 +348,14 @@ function SpiralScene({ collection, items, motion, onReady }: SpiralSceneProps) {
         ref={(material) => {
           materialRefs.current[index] = material
         }}
-        map={textures[getSpiralSlot(index, slotCount, motion.current.position, items.length).itemIndex]}
+        map={placeholders.shimmer}
         side={THREE.DoubleSide}
         toneMapped={false}
       />
+      <mesh geometry={geometry}>
+        <meshBasicMaterial ref={material => { imageMaterials.current[index] = material }}
+          transparent opacity={0} depthWrite={false} side={THREE.DoubleSide} toneMapped={false} />
+      </mesh>
     </mesh>
   ))
 }

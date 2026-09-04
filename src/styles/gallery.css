@@ -42,6 +42,24 @@
   display: block;
 }
 
+.spiral-gallery__errors {
+  position: absolute;
+  z-index: var(--z-content);
+  left: var(--layout-gutter);
+  bottom: 6rem;
+  max-width: calc(100% - 2 * var(--layout-gutter));
+  max-height: 25dvh;
+  overflow: auto;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  background: var(--color-surface);
+  font-size: var(--font-size-caption);
+  line-height: var(--line-height-caption);
+}
+
 .spiral-gallery__accessible-list {
   position: absolute;
   width: 1px;

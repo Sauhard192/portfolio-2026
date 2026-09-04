@@ -1,5 +1,6 @@
 import { Fragment, useEffect, useRef, useState } from 'react'
 import type { CaseStudySection, ProjectBody, ProjectImage, TextRun } from '../../types/caseStudy'
+import { ProgressiveImage } from '../ui/ProgressiveImage'
 
 function InlineText({ runs }: { runs: TextRun[] }) {
   return runs.map((run, index) => typeof run === 'string'
@@ -20,7 +21,7 @@ export function ProjectText({ body }: { body: ProjectBody }) {
 export function CaseImage({ image, priority = false, sizes = '100vw' }: {
   image: ProjectImage; priority?: boolean; sizes?: string
 }) {
-  const ref = useRef<HTMLImageElement>(null)
+  const ref = useRef<HTMLSpanElement>(null)
   const [playing, setPlaying] = useState(false)
   const [failedSource, setFailedSource] = useState<string>()
   useEffect(() => {
@@ -44,10 +45,10 @@ export function CaseImage({ image, priority = false, sizes = '100vw' }: {
   }, [image.animatedSrc])
   // Native animated images have no pause API: use a still while inactive.
   const animated = playing && image.animatedSrc && failedSource !== image.animatedSrc
-  return <img ref={ref} src={animated ? image.animatedSrc : image.src} srcSet={animated ? undefined : image.srcSet} sizes={sizes}
+  return <ProgressiveImage containerRef={ref} src={animated ? image.animatedSrc : image.src} srcSet={animated ? undefined : image.srcSet} sizes={sizes}
     width={image.width} height={image.height} alt={image.alt}
     loading={priority ? 'eager' : 'lazy'} fetchPriority={priority ? 'high' : 'auto'} decoding="async"
-    onError={animated ? () => setFailedSource(image.animatedSrc) : undefined}
+    onFailure={animated ? () => setFailedSource(image.animatedSrc) : undefined}
     style={image.position ? { objectPosition: image.position } : undefined} />
 }
 

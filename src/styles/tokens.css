@@ -1,4 +1,7 @@
 :root {
+  --image-skeleton-base: #e4e4e4;
+  --image-skeleton-highlight: #f5f5f5;
+  --image-fade-duration: 250ms;
   /* Color */
   --color-background: #ededed;
   --color-surface: #fafafa;

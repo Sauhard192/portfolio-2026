@@ -42,25 +42,6 @@
 .media-view__image-box img {
   object-fit: contain;
   user-select: none;
-  opacity: 1;
-  transition: opacity var(--duration-ui) var(--ease-out);
-}
-
-.media-view__image-box img[data-status='loading'],
-.media-view__image-box img[data-status='error'] {
-  opacity: 0;
-}
-
-.media-view__image-status {
-  position: absolute;
-  inset: 0;
-  display: grid;
-  place-content: center;
-  padding: var(--space-4);
-  background: var(--color-background);
-  text-align: center;
-  font-size: var(--type-media-caption-size);
-  line-height: var(--type-media-caption-line-height);
 }
 
 .media-view__metadata {

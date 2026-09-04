@@ -50,7 +50,7 @@ export function GalleryPage({ collection, items }: GalleryPageProps) {
     prefersReducedMotion() || !supportsWebGL() ? 'grid' : 'spiral',
   )
   const [showScrollHint, setShowScrollHint] = useState(view === 'spiral')
-  usePageEntrance(pageRef)
+  usePageEntrance(pageRef, view)
 
   useEffect(() => {
     const motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)')
@@ -63,6 +63,7 @@ export function GalleryPage({ collection, items }: GalleryPageProps) {
   }, [])
 
   useEffect(() => {
+    if (view === 'grid') return
     const element = viewRef.current
     if (!element) return
 
