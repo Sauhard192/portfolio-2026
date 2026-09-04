@@ -11,6 +11,32 @@
   touch-action: pan-y pinch-zoom;
 }
 
+.media-view__header {
+  position: absolute;
+  z-index: var(--z-sticky);
+  top: calc(var(--header-block-offset) + env(safe-area-inset-top));
+  left: max(var(--layout-gutter), env(safe-area-inset-left));
+}
+
+.media-view__close {
+  display: grid;
+  place-items: center;
+  width: var(--space-8);
+  height: var(--space-8);
+  border-radius: var(--radius-pill);
+  background: var(--color-foreground);
+  color: var(--color-surface);
+  transition: transform var(--duration-fast) var(--ease-out);
+  touch-action: manipulation;
+}
+
+.media-view__close-icon {
+  width: var(--space-5);
+  height: var(--space-5);
+  background: currentColor;
+  mask: no-repeat center / contain;
+}
+
 .media-view__stage,
 .media-view__item {
   position: absolute;
@@ -100,14 +126,18 @@
   height: var(--space-8);
   border-radius: var(--radius-pill);
   transition: transform var(--duration-fast) var(--ease-out);
+  touch-action: manipulation;
 }
 
-.media-view__arrow svg { width: var(--space-5); height: var(--space-5); }
-.media-view__arrow:active { transform: scale(0.97); }
+.media-view__arrow img { width: var(--space-5); height: var(--space-5); }
+.media-view__close:active,
+.media-view__arrow:active { transform: scale(1.08); }
 
 @media (hover: hover) {
-  .media-view__arrow:hover { transform: translateY(-2px); }
-  .media-view__arrow:active { transform: scale(0.97); }
+  .media-view__close:hover,
+  .media-view__arrow:hover { transform: scale(0.95); }
+  .media-view__close:active,
+  .media-view__arrow:active { transform: scale(1.08); }
 }
 
 .media-view__empty {
@@ -142,12 +172,15 @@
   }
   .media-view__zone { display: none; }
   .media-view__controls { display: flex; }
-  .media-view:has(.home-header[data-menu-open='true']) .media-view__controls { visibility: hidden; }
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .media-view__close,
   .media-view__arrow { transition: none; }
+  .media-view__close:active { transform: none; opacity: 0.75; }
+  .media-view__close:hover,
   .media-view__arrow:hover,
   .media-view__arrow:active { transform: none; }
+  .media-view__arrow:active { opacity: 0.75; }
   .media-view__image-box img { transition-duration: 120ms; }
 }

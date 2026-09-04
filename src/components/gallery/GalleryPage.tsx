@@ -19,6 +19,8 @@ import { CustomCursor } from '../home/CustomCursor'
 import { InfiniteProjectGallery } from '../home/InfiniteProjectGallery'
 import { SiteHeader } from '../layout/SiteHeader'
 
+import { galleryMemory } from './galleryMemory'
+
 const SpiralGallery = lazy(() => import('./SpiralGallery'))
 
 const VIEW_OPTIONS = [
@@ -47,7 +49,7 @@ export function GalleryPage({ collection, items }: GalleryPageProps) {
   const pageRef = useRef<HTMLElement>(null)
   const viewRef = useRef<HTMLDivElement>(null)
   const [view, setView] = useState<MediaGalleryView>(() =>
-    prefersReducedMotion() || !supportsWebGL() ? 'grid' : 'spiral',
+    prefersReducedMotion() || !supportsWebGL() ? 'grid' : galleryMemory[collection].view ?? 'spiral',
   )
   const [showScrollHint, setShowScrollHint] = useState(view === 'spiral')
   usePageEntrance(pageRef, view)
@@ -99,6 +101,7 @@ export function GalleryPage({ collection, items }: GalleryPageProps) {
 
   const handleViewChange = (nextView: MediaGalleryView) => {
     if (nextView !== 'spiral') setShowScrollHint(false)
+    galleryMemory[collection].view = nextView
     setView(nextView)
   }
 
@@ -126,6 +129,7 @@ export function GalleryPage({ collection, items }: GalleryPageProps) {
             projects={gridItems}
             view="grid"
             showTouchMetadata={false}
+            positionMemory={galleryMemory[collection]}
           />
         ) : (
           <SpiralErrorBoundary onError={() => setView('grid')}>

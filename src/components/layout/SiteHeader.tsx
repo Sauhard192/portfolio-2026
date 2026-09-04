@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
+import menuIcon from '../../assets/icons/menu.svg'
+import closeIcon from '../../assets/icons/close.svg'
 
 import type { HomeView, MediaGalleryView } from '../../types/home'
 import { ScrambleText } from '../ui/ScrambleText'
@@ -126,8 +128,7 @@ export function SiteHeader({
         data-page-header
         onClick={() => setMenuOpen((isOpen) => !isOpen)}
       >
-        <span />
-        <span />
+        <img src={menuOpen ? closeIcon : menuIcon} width={20} height={20} alt="" aria-hidden="true" />
       </button>
 
       <nav

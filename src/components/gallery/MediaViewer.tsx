@@ -1,11 +1,13 @@
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties, type TouchEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { gsap } from 'gsap'
+import closeIcon from '../../assets/icons/close.svg'
+import arrowLeft from '../../assets/icons/arrow-left.svg'
+import arrowRight from '../../assets/icons/arrow-right.svg'
 
 import { usePageEntrance } from '../../hooks/usePageEntrance'
 import type { MediaCollection, MediaItem } from '../../types/media'
 import { CustomCursor } from '../home/CustomCursor'
-import { SiteHeader } from '../layout/SiteHeader'
 import { getSwipeDirection, mediaDateLabel, wrapMediaIndex } from './mediaNavigation'
 import { ProgressiveImage } from '../ui/ProgressiveImage'
 
@@ -85,7 +87,11 @@ export function MediaViewer({ collection, items, slug }: MediaViewerProps) {
       onTouchEnd={handleTouchEnd}
       onTouchCancel={() => { touch.current = null }}
     >
-      <SiteHeader />
+      <header className="media-view__header" data-page-header>
+        <Link className="media-view__close" to={`/${collection}`} aria-label={`Close image and return to ${collection === 'art' ? 'Art' : 'Photography'}`} data-cursor="interactive">
+          <span className="media-view__close-icon" style={{ maskImage: `url("${closeIcon}")` }} aria-hidden="true" />
+        </Link>
+      </header>
       {item ? (
         <>
           <h1 className="media-view__sr-only">{item.title}</h1>
@@ -97,9 +103,7 @@ export function MediaViewer({ collection, items, slug }: MediaViewerProps) {
               {([-1, 1] as const).map((direction) => (
                 <Link className="media-view__arrow" to={hrefAt(direction)} aria-label={direction === -1 ? 'Previous image' : 'Next image'} data-cursor="interactive" key={direction}>
                   <span data-enter-meta>
-                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                      <path d={direction === -1 ? 'M19 12H5m6-6-6 6 6 6' : 'M5 12h14m-6-6 6 6-6 6'} stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
+                    <img src={direction === -1 ? arrowLeft : arrowRight} width={20} height={20} alt="" aria-hidden="true" />
                   </span>
                 </Link>
               ))}

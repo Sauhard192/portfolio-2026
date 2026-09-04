@@ -1,3 +1,4 @@
+import { galleryMemory } from './galleryMemory'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Canvas, type ThreeEvent, useFrame, useThree } from '@react-three/fiber'
 import { Link, useNavigate } from 'react-router-dom'
@@ -65,7 +66,7 @@ export default function SpiralGallery({ collection, items }: SpiralGalleryProps)
   const [errors, setErrors] = useState<Array<{ title: string; retry: () => void }>>([])
   const markReady = useCallback(() => setReady(true), [])
   const motionRef = useRef<SpiralMotion>({
-    position: 0,
+    position: galleryMemory[collection].spiralPosition,
     velocity: 0,
     radiusDrive: 0,
     cadence: 0,
@@ -130,6 +131,7 @@ export default function SpiralGallery({ collection, items }: SpiralGalleryProps)
     document.addEventListener('visibilitychange', handleVisibility)
 
     return () => {
+      galleryMemory[collection].spiralPosition = motionRef.current.position
       dispatchCursorTarget(false)
       document.body.style.removeProperty('cursor')
       root.removeEventListener('wheel', handleWheel)

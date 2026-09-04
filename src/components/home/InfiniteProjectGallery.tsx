@@ -25,6 +25,7 @@ interface InfiniteProjectGalleryProps {
   projects: InfiniteGalleryItem[]
   view: HomeView
   showTouchMetadata?: boolean
+  positionMemory?: { gridPosition: number }
 }
 
 const COPIES = [0, 1, 2, 3]
@@ -33,6 +34,7 @@ export function InfiniteProjectGallery({
   projects,
   view,
   showTouchMetadata = true,
+  positionMemory,
 }: InfiniteProjectGalleryProps) {
   const galleryRef = useRef<HTMLDivElement>(null)
   const zoomLayerRef = useRef<HTMLDivElement>(null)
@@ -195,6 +197,7 @@ export function InfiniteProjectGallery({
     }
 
     const handleScroll = (scrollState: Lenis) => {
+      if (positionMemory && cycleHeight > 0 && !document.documentElement.dataset.routeScrollLocked) positionMemory.gridPosition = getLoopPosition(scrollState.animatedScroll) / cycleHeight
       updateTrackPosition(scrollState.animatedScroll)
 
       if (reducedMotion || window.innerWidth <= 900) return
@@ -230,8 +233,9 @@ export function InfiniteProjectGallery({
     handleResize()
 
     scrollOrigin = lenis.limit / 2
-    lenis.scrollTo(scrollOrigin, { immediate: true, force: true })
-    updateTrackPosition(scrollOrigin)
+    const restoredPosition = scrollOrigin + (positionMemory?.gridPosition ?? 0) * cycleHeight
+    lenis.scrollTo(restoredPosition, { immediate: true, force: true })
+    updateTrackPosition(restoredPosition)
     lenis.on('scroll', handleScroll)
     gallery.dataset.entranceReady = 'true'
     gallery.dispatchEvent(new Event('portfolio:gallery-ready'))
@@ -246,7 +250,7 @@ export function InfiniteProjectGallery({
       window.history.scrollRestoration = previousScrollRestoration
       window.scrollTo(0, 0)
     }
-  }, [view, projects, gridLayout.count])
+  }, [view, projects, gridLayout.count, positionMemory])
 
   return (
     <div ref={galleryRef} id="project-gallery" className={`project-gallery project-gallery--${view}`}>
