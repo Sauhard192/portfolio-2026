@@ -3,8 +3,30 @@
   "title": "Typography Exercises",
   "roles": [],
   "projectType": "Typography study",
-  "date": "2026",
-  "description": "Case study coming soon.",
-  "hero": "@placeholder",
-  "sections": []
+  "date": "2023",
+  "description": "A typography exercise completed as part of an office design workshop, based on an online graphic design course. The assignment introduced a set of typographic constraints, encouraging us to experiment with hierarchy, composition, spacing, and visual rhythm within a limited system.",
+  "hero": "cover.png",
+  "sections": [
+
+    {
+       "images":[
+      "img1.png"
+    ]
+  },
+
+    {
+     "images":[
+      "img2.png",
+      "img3.png"
+    ]},
+
+    {
+     "images":[
+      "img4.png",
+      "img5.png",
+      "img6.png"
+    ]
+  }
+
+  ]
 }

@@ -18,6 +18,12 @@ body::-webkit-scrollbar {
   height: 0;
 }
 
+html,
+body {
+  /* Prevent vertical boundary bounce from exposing the surface beneath the page. */
+  overscroll-behavior-y: none;
+}
+
 body {
   margin: 0;
   min-width: 20rem;

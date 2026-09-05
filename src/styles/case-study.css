@@ -91,10 +91,9 @@
 .case-study__images[data-columns='3'] { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .case-study__notes { display: grid; grid-template-columns: 1fr 1fr; gap: var(--case-image-gap); }
 .case-study__notes h2 {
-  max-width: 24ch;
   font-size: var(--type-case-note-size);
   font-weight: var(--font-weight-semibold);
-  line-height: var(--line-height-heading);
+  line-height: var(--type-case-note-line-height);
   text-transform: uppercase;
 }
 .case-study__missing { min-height: 100dvh; display: grid; align-content: center; gap: var(--space-6); }

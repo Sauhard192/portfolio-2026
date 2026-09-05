@@ -21,8 +21,9 @@ export function NextProjectFooter({ project, pageRef }: {
       <div className="next-project__preview">
         <span className="next-project__label next-project__label--scroll">Keep Scrolling!</span>
         <span className="next-project__label next-project__label--click">View Project</span>
-        <ProgressiveImage className="next-project__image" src={thumbnail.thumbnail.src} srcSet={thumbnail.thumbnail.srcSet}
-          sizes="(max-width: 640px) 60vw, 25vw" width={thumbnail.width} height={thumbnail.height} alt="" loading="lazy" />
+        {/* Use the detail variant: square cropping can magnify a smaller srcset candidate. */}
+        <ProgressiveImage className="next-project__image" src={thumbnail.src}
+          width={thumbnail.width} height={thumbnail.height} alt="" loading="lazy" />
       </div>
       <span className="next-project__title">{project.title}</span>
     </div>

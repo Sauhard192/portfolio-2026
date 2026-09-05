@@ -1,10 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
 
 import arrowTopLeft from '../../assets/icons/arrow-top-left.svg'
+import arrowLeft from '../../assets/icons/arrow-left.svg'
+import arrowRight from '../../assets/icons/arrow-right.svg'
 
 interface TooltipContent {
   title: string
   year: string
+  icon?: string
 }
 
 interface CustomCursorProps {
@@ -71,7 +74,7 @@ export function CustomCursor({
       setIsInteractive(Boolean(element))
       if (introTooltipActive) return
       const title = element?.dataset.tooltip
-      setTooltip(title ? { title, year: element?.dataset.year ?? '' } : null)
+      setTooltip(title ? { title, year: element?.dataset.year ?? '', icon: element?.dataset.tooltipIcon } : null)
     }
 
     const restoreTooltipAfterScroll = () => {
@@ -94,10 +97,14 @@ export function CustomCursor({
       if (!element) return
 
       setIsInteractive(true)
-      if (tooltipSuppressedByScroll || introTooltipActive) return
+      if (tooltipSuppressedByScroll) return
+      if (introTooltipActive) {
+        setTooltip(null)
+        return
+      }
 
       const title = element.dataset.tooltip
-      setTooltip(title ? { title, year: element.dataset.year ?? '' } : null)
+      setTooltip(title ? { title, year: element.dataset.year ?? '', icon: element.dataset.tooltipIcon } : null)
     }
 
     const handlePointerOut = (event: PointerEvent) => {
@@ -106,16 +113,28 @@ export function CustomCursor({
       if (!from || from === to) return
 
       setIsInteractive(Boolean(to))
-      if (tooltipSuppressedByScroll || introTooltipActive) return
+      if (tooltipSuppressedByScroll) return
+      if (introTooltipActive) {
+        setTooltip(to ? null : initialTooltip ? { title: initialTooltip, year: '' } : null)
+        return
+      }
 
       const title = to?.dataset.tooltip
-      setTooltip(title ? { title, year: to?.dataset.year ?? '' } : null)
+      setTooltip(title ? { title, year: to?.dataset.year ?? '', icon: to?.dataset.tooltipIcon } : null)
     }
 
     const handleVirtualTarget = (event: Event) => {
       const detail = (event as CustomEvent<CursorDetail>).detail
       setIsInteractive(detail.interactive)
-      if (tooltipSuppressedByScroll || introTooltipActive) return
+      if (tooltipSuppressedByScroll) return
+      if (introTooltipActive) {
+        setTooltip(
+          detail.interactive || !initialTooltip
+            ? null
+            : { title: initialTooltip, year: '' },
+        )
+        return
+      }
 
       setTooltip(
         detail.tooltip
@@ -131,6 +150,7 @@ export function CustomCursor({
     document.addEventListener('pointerover', handlePointerOver)
     document.addEventListener('pointerout', handlePointerOut)
     window.addEventListener('portfolio:cursor-target', handleVirtualTarget)
+    window.addEventListener('portfolio:scroll-intent', handleScrollActivity)
     frame = requestAnimationFrame(tick)
 
     return () => {
@@ -144,8 +164,13 @@ export function CustomCursor({
       document.removeEventListener('pointerover', handlePointerOver)
       document.removeEventListener('pointerout', handlePointerOut)
       window.removeEventListener('portfolio:cursor-target', handleVirtualTarget)
+      window.removeEventListener('portfolio:scroll-intent', handleScrollActivity)
     }
   }, [initialTooltip, onInitialTooltipDismiss])
+
+  const tooltipIcon = tooltip?.icon === 'left' ? arrowLeft
+    : tooltip?.icon === 'right' ? arrowRight
+    : showTooltipIcon ? arrowTopLeft : undefined
 
   return (
     <div
@@ -153,13 +178,13 @@ export function CustomCursor({
       className="site-cursor"
       data-interactive={isInteractive}
       data-tooltip-visible={Boolean(tooltip)}
-      data-tooltip-icon={showTooltipIcon}
+      data-tooltip-icon={Boolean(tooltipIcon)}
       aria-hidden="true"
     >
       <span className="site-cursor__dot" />
       <span className="site-cursor__ring" />
       <span className="site-cursor__tooltip">
-        {showTooltipIcon && <img className="site-cursor__arrow" src={arrowTopLeft} alt="" />}
+        {tooltipIcon && <img className="site-cursor__arrow" src={tooltipIcon} alt="" />}
         <span>
           <strong>{tooltip?.title}</strong>
           <small>{tooltip?.year}</small>

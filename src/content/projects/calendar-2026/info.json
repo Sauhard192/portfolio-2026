@@ -1,10 +1,25 @@
 {
   "slug": "calendar-2026",
   "title": "Calendar 2026",
-  "roles": [],
-  "projectType": "Editorial design",
+  "roles": ["Graphic Design", "Print Media Design"],
+  "projectType": "Print Design",
   "date": "2026",
-  "description": "Case study coming soon.",
-  "hero": "@placeholder",
-  "sections": []
+  "description": "Calendar 2026 is a self-initiated print design project built around photographs I took during my everyday walks. Each month pairs one of these images with a minimal calendar layout, using typography, spacing, and scale to turn small moments from daily life into a cohesive visual collection.",
+  "hero": "cover.png",
+
+  "sections": [
+ {
+      "images":[
+        "image-01.png"
+      ]
+    },
+
+     {
+      "images":[
+        "image-02.png",
+        "image-03.png"
+      ]
+    }
+
+  ]
 }

@@ -22,10 +22,10 @@ export function HomePage() {
         projects={caseStudies.map((project) => ({
           slug: project.slug,
           title: project.title,
-          year: project.date,
+          year: [project.projectType, project.date].filter(Boolean).join(' • '),
           href: `/case-studies/${project.slug}`,
           gridTooltip: project.title,
-          listTooltip: project.projectType,
+          listTooltip: project.title,
           cover: { ...(project.thumbnail ?? project.hero).thumbnail, alt: (project.thumbnail ?? project.hero).alt },
         }))}
         view={view}

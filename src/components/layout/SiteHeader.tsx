@@ -1,7 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
-import menuIcon from '../../assets/icons/menu.svg'
-import closeIcon from '../../assets/icons/close.svg'
 
 import type { HomeView, MediaGalleryView } from '../../types/home'
 import { ScrambleText } from '../ui/ScrambleText'
@@ -128,7 +126,10 @@ export function SiteHeader({
         data-page-header
         onClick={() => setMenuOpen((isOpen) => !isOpen)}
       >
-        <img src={menuOpen ? closeIcon : menuIcon} width={20} height={20} alt="" aria-hidden="true" />
+        <svg className="menu-toggle__icon" width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <rect className="menu-toggle__bar menu-toggle__bar--top" x="2" y="10" width="20" height="4" />
+          <rect className="menu-toggle__bar menu-toggle__bar--bottom" x="2" y="10" width="20" height="4" />
+        </svg>
       </button>
 
       <nav

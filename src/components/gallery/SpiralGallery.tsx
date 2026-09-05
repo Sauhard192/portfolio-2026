@@ -84,6 +84,8 @@ export default function SpiralGallery({ collection, items }: SpiralGalleryProps)
     let lastPointerY = 0
 
     const addVelocity = (delta: number) => {
+      if (delta === 0) return
+      window.dispatchEvent(new Event('portfolio:scroll-intent'))
       applyScrollInput(motionRef.current, delta, performance.now())
     }
 
@@ -234,11 +236,10 @@ function SpiralScene({ collection, items, motion, onReady, onErrors }: SpiralSce
   const cameraZ = useRef(CAMERA_DISTANCE)
 
   useEffect(() => {
-    placeholders.shimmer.needsUpdate = placeholders.error.needsUpdate = true
+    placeholders.error.needsUpdate = true
     return () => {
       cancelAnimationFrame(readyFrame.current)
       firstFrame.current = false
-      placeholders.shimmer.dispose()
       placeholders.error.dispose()
     }
   }, [placeholders])
@@ -249,7 +250,6 @@ function SpiralScene({ collection, items, motion, onReady, onErrors }: SpiralSce
 
     const safeDelta = Math.min(delta, 0.05)
     const reducedMotion = motionPreference.matches
-    if (!reducedMotion) placeholders.shimmer.offset.x -= safeDelta / 1.6
     const idleSpeed = 1 / (HELIX_TURNS * IDLE_ROTATION_SECONDS)
     const idleMultiplier = state.hovering ? HOVER_IDLE_SPEED_MULTIPLIER : 1
     // Idle and input move along the same path, without rotating the path itself.
@@ -294,20 +294,19 @@ function SpiralScene({ collection, items, motion, onReady, onErrors }: SpiralSce
       material.color.setScalar(0.48 + depth * 0.52)
       const image = images[itemIndex]
       const imageMaterial = imageMaterials.current[index]
-      const placeholder = image.status === 'error' ? placeholders.error : placeholders.shimmer
-      if (material.map !== placeholder) { material.map = placeholder; material.needsUpdate = true }
+      // Each image fades once when ready; recycled cards keep their opacity.
       const opacity = image.status === 'ready' ? Math.min(1, (performance.now() - image.readyAt) / 250) : 0
-      material.visible = opacity < 1
+      material.visible = image.status === 'error'
       if (imageMaterial) {
         if (imageMaterial.map !== image.texture) { imageMaterial.map = image.texture; imageMaterial.needsUpdate = true }
         imageMaterial.visible = image.status === 'ready'
         imageMaterial.opacity = reducedMotion && image.status === 'ready' ? 1 : opacity
         imageMaterial.color.copy(material.color)
-        // Child draws immediately after its own skeleton, not all other cards.
+        // Keep each image's depth ordering aligned with its card.
         mesh.children[0].renderOrder = mesh.renderOrder + 1
       }
     }
-    // Reveal after the first positioned skeleton frame, independent of image IO.
+    // Start the scene immediately, independent of image loading.
     if (!firstFrame.current) {
       firstFrame.current = true
       readyFrame.current = requestAnimationFrame(onReady)
@@ -335,6 +334,12 @@ function SpiralScene({ collection, items, motion, onReady, onErrors }: SpiralSce
       }}
       geometry={geometry}
       scale={fitScale}
+      raycast={function (this: THREE.Mesh, raycaster, intersections) {
+        const { itemIndex } = getSpiralSlot(index, slotCount, motion.current.position, items.length)
+        if (images[itemIndex].status !== 'loading') {
+          THREE.Mesh.prototype.raycast.call(this, raycaster, intersections)
+        }
+      }}
       onPointerOver={handlePointerOver}
       onPointerOut={handlePointerOut}
       onClick={(event) => {
@@ -350,11 +355,12 @@ function SpiralScene({ collection, items, motion, onReady, onErrors }: SpiralSce
         ref={(material) => {
           materialRefs.current[index] = material
         }}
-        map={placeholders.shimmer}
+        map={placeholders.error}
+        visible={false}
         side={THREE.DoubleSide}
         toneMapped={false}
       />
-      <mesh geometry={geometry}>
+      <mesh geometry={geometry} raycast={() => {}}>
         <meshBasicMaterial ref={material => { imageMaterials.current[index] = material }}
           transparent opacity={0} depthWrite={false} side={THREE.DoubleSide} toneMapped={false} />
       </mesh>

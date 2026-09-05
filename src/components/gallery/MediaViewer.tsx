@@ -152,8 +152,8 @@ function MediaFigure({ item, previousHref, nextHref, canNavigate }: MediaFigureP
     <div ref={ref} className="media-view__item" style={{ '--media-aspect-ratio': ratio } as CSSProperties}>
       {canNavigate && (
         <>
-          <Link to={previousHref} className="media-view__zone media-view__zone--previous" aria-label="Previous image" data-cursor="interactive" data-tooltip="Previous" />
-          <Link to={nextHref} className="media-view__zone media-view__zone--next" aria-label="Next image" data-cursor="interactive" data-tooltip="Next" />
+          <Link to={previousHref} className="media-view__zone media-view__zone--previous" aria-label="Previous image" data-cursor="interactive" data-tooltip="Previous" data-tooltip-icon="left" />
+          <Link to={nextHref} className="media-view__zone media-view__zone--next" aria-label="Next image" data-cursor="interactive" data-tooltip="Next" data-tooltip-icon="right" />
         </>
       )}
       <figure className="media-view__figure">

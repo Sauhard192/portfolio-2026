@@ -2,6 +2,7 @@ import { useEffect, useRef, type RefObject } from 'react'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { footerProgress, NEXT_PROJECT_SCROLL_SCREENS } from '../components/case-study/caseStudyNavigation'
+import { CASE_REVEAL_DELAY, CASE_REVEAL_DURATION, CASE_IMAGE_STAGGER, CASE_IMAGE_START_SCALE, CASE_SIDE_REVEAL_START } from '../components/case-study/revealTiming'
 
 gsap.registerPlugin(ScrollTrigger)
 if (import.meta.env.DEV) Object.assign(window, { ScrollTrigger })
@@ -67,10 +68,46 @@ export function useCaseStudyScroll(
 
       page.querySelectorAll<HTMLElement>('[data-case-reveal]').forEach((element) => {
         if (element.getBoundingClientRect().top < window.innerHeight * 0.9) return
-        gsap.fromTo(element, { opacity: 0 }, { opacity: 1, duration: 0.65, ease: 'power2.out',
+        const isImage = element.classList.contains('case-study__image')
+        // Only stagger images sharing a row; stacked mobile images trigger individually.
+        const rowIndex = isImage && element.parentElement
+          ? Array.from(element.parentElement.children).filter(sibling =>
+            sibling instanceof HTMLElement && sibling.offsetTop === element.offsetTop,
+          ).indexOf(element)
+          : 0
+        const sideways = isImage && element.parentElement?.dataset.columns === '1'
+        const reveal = gsap.timeline({
+          delay: CASE_REVEAL_DELAY + Math.max(0, rowIndex) * CASE_IMAGE_STAGGER,
+          defaults: { duration: CASE_REVEAL_DURATION, ease: 'power2.out' },
           scrollTrigger: { trigger: element, start: 'top 90%', once: true },
         })
+        reveal.fromTo(element,
+          isImage ? { clipPath: sideways ? CASE_SIDE_REVEAL_START : 'inset(100% 0% 0% 0%)' } : { opacity: 0, y: 20 },
+          {
+            ...(isImage ? { clipPath: 'inset(0% 0% 0% 0%)' } : { opacity: 1, y: 0 }),
+            clearProps: isImage ? 'clipPath' : 'opacity,transform',
+          },
+        )
+        const image = isImage ? element.querySelector('.progressive-image') : null
+        if (image) reveal.fromTo(image, { scale: CASE_IMAGE_START_SCALE }, { scale: 1, clearProps: 'transform' }, 0)
       })
+
+      const heading = footer.querySelector('.next-project-heading')
+      const preview = footer.querySelector('.next-project__image')
+      const details = footer.querySelectorAll('.next-project__title, .next-project__label')
+      const footerEntrance = gsap.timeline({
+        scrollTrigger: { trigger: footer, start: 'top bottom', once: true },
+        defaults: { ease: 'power2.out' },
+      })
+      if (heading) footerEntrance.fromTo(heading, { opacity: 0, y: 20 },
+        { opacity: 1, y: 0, duration: 0.7, clearProps: 'opacity,transform' }, 0)
+      if (preview) footerEntrance.fromTo(preview,
+        { clipPath: CASE_SIDE_REVEAL_START, scale: CASE_IMAGE_START_SCALE },
+        { clipPath: 'inset(0% 0% 0% 0%)', scale: 1, duration: CASE_REVEAL_DURATION,
+          clearProps: 'clipPath,transform' }, CASE_REVEAL_DELAY)
+      // Opacity preserves the label's existing tilt and position.
+      footerEntrance.fromTo(details, { opacity: 0 },
+        { opacity: 1, duration: 0.55, stagger: 0.1, clearProps: 'opacity' })
       return () => {
         cancelAnimationFrame(navigationFrame)
         fill.style.transform = 'scaleY(0)'

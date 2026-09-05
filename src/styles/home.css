@@ -423,10 +423,34 @@
     border-radius: 50%;
   }
 
-  .menu-toggle img {
+  .menu-toggle__icon {
     display: block;
     width: 20px;
     height: 20px;
+    fill: var(--color-foreground);
+    overflow: visible;
+  }
+
+  .menu-toggle__bar {
+    transform-origin: 12px 12px;
+    /* Small overshoot; transitions reverse smoothly on repeated taps. */
+    transition: transform 320ms cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  }
+
+  .menu-toggle__bar--top {
+    transform: translateY(-5px);
+  }
+
+  .menu-toggle__bar--bottom {
+    transform: translateY(5px);
+  }
+
+  .menu-toggle[aria-expanded='true'] .menu-toggle__bar--top {
+    transform: rotate(45deg) scaleX(1.13137);
+  }
+
+  .menu-toggle[aria-expanded='true'] .menu-toggle__bar--bottom {
+    transform: rotate(-45deg) scaleX(1.13137);
   }
 
   .menu-toggle:active {
@@ -541,6 +565,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .menu-toggle__bar,
   .project-gallery__surface,
   .project-card,
   .project-list-item,

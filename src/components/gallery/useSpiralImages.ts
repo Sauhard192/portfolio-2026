@@ -2,7 +2,7 @@ import { useEffect, useMemo } from 'react'
 import * as THREE from 'three'
 import type { MediaItem } from '../../types/media'
 import { createPosterTexture } from './posterTexture'
-import { getCachedSpiralImage, loadSpiralImage } from './spiralImageRequests'
+import { loadSpiralImage } from './spiralImageRequests'
 
 export interface SpiralImageState {
   status: 'loading' | 'ready' | 'error'
@@ -25,7 +25,6 @@ export function useSpiralImages(items: MediaItem[], aspect: number, anisotropy: 
       const entry = entries[index]
       const item = items[index]
       entry.status = 'loading'
-      const cached = Boolean(getCachedSpiralImage(item.image.spiralSrc)) && !retry
       publishErrors()
       void loadSpiralImage(item.image.spiralSrc, retry).then(image => {
         if (!active) return
@@ -35,7 +34,7 @@ export function useSpiralImages(items: MediaItem[], aspect: number, anisotropy: 
         texture.anisotropy = anisotropy
         entry.texture?.dispose()
         entry.texture = texture
-        entry.readyAt = cached ? -Infinity : performance.now()
+        entry.readyAt = performance.now()
         entry.status = 'ready'
       }, () => {
         if (!active) return

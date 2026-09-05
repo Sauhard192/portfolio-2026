@@ -1,5 +1,6 @@
 import { type RefObject, useLayoutEffect, useRef } from 'react'
 import { gsap } from 'gsap'
+import { CASE_REVEAL_DELAY, CASE_REVEAL_DURATION, CASE_IMAGE_START_SCALE } from '../components/case-study/revealTiming'
 
 const VIEWPORT_EDGE_BUFFER = 64
 
@@ -40,6 +41,8 @@ export function usePageEntrance(scopeRef: RefObject<HTMLElement | null>, view?: 
     if (allImages.length > 0) {
       gsap.set(allImages, { opacity: 0 })
     }
+    const hero = scope.querySelector<HTMLElement>('.case-study__hero')
+    if (hero && !reducedMotion) gsap.set(hero, { clipPath: 'inset(100% 0% 0% 0%)' })
     if (allMetadata.length > 0) gsap.set(allMetadata, { opacity: 0, y: 14 })
 
     let timeline: gsap.core.Timeline | null = null
@@ -66,7 +69,7 @@ export function usePageEntrance(scopeRef: RefObject<HTMLElement | null>, view?: 
           gsap.set(hiddenTextLines, { clearProps: 'opacity,transform' })
         }
         if (hiddenImages.length > 0) {
-          gsap.set(hiddenImages, { clearProps: 'opacity' })
+          gsap.set(hiddenImages, { clearProps: 'opacity,clipPath' })
         }
         if (hiddenMetadata.length > 0) {
           gsap.set(hiddenMetadata, { clearProps: 'opacity,transform' })
@@ -101,15 +104,23 @@ export function usePageEntrance(scopeRef: RefObject<HTMLElement | null>, view?: 
         }
 
         if (images.length > 0) {
+          const maskedHero = hero && images.includes(hero)
           timeline.to(
             images,
             {
               opacity: 1,
-              duration: 0.62,
+              ...(maskedHero ? { clipPath: 'inset(0% 0% 0% 0%)', clearProps: 'clipPath' } : {}),
+              duration: maskedHero ? CASE_REVEAL_DURATION : 0.62,
               stagger: 0.075,
               ease: 'power2.out',
             },
-            '-=0.18',
+            maskedHero ? `+=${CASE_REVEAL_DELAY}` : '-=0.18',
+          )
+          const heroImage = maskedHero ? hero.querySelector('.progressive-image') : null
+          if (heroImage) timeline.fromTo(heroImage,
+            { scale: CASE_IMAGE_START_SCALE },
+            { scale: 1, duration: CASE_REVEAL_DURATION, ease: 'power2.out', clearProps: 'transform' },
+            '<',
           )
         }
 
@@ -134,9 +145,11 @@ export function usePageEntrance(scopeRef: RefObject<HTMLElement | null>, view?: 
       gallery?.removeEventListener('portfolio:gallery-ready', startEntrance)
       cancelAnimationFrame(entranceFrame)
       timeline?.kill()
+      const heroImage = hero?.querySelector('.progressive-image')
+      if (heroImage) gsap.set(heroImage, { clearProps: 'transform' })
       const allElements = [...headerElements, ...allTextLines, ...allImages, ...allMetadata]
       if (allElements.length > 0) {
-        gsap.set(allElements, { clearProps: 'opacity,transform' })
+        gsap.set(allElements, { clearProps: 'opacity,transform,clipPath' })
       }
     }
   }, [scopeRef, view])

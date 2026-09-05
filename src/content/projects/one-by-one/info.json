@@ -1,0 +1,30 @@
+{
+  "slug": "one-by-one",
+  "title": "One by One",
+  "roles": ["Grahic Design", "Poster Design", "Typography"],
+  "projectType": "Graphic Design",
+  "date": "2026",
+  "description": "“One by One” is an experimental poster series inspired by Sylvia Plath’s literature. Using fragmented typography, layered organic forms, and acidic green tones, the project explores themes of decay, repetition, and gradual loss.",
+ 
+   "hero": "cover.png",
+
+  "sections": [
+    {
+       "images":[
+      "img1.png"
+    ]
+  },
+
+    {
+     "images":[
+      "img2.png",
+      "img3.png"
+    ]
+  },
+  {
+       "images":[
+      "img4.png"
+    ]
+  }
+  ]
+}

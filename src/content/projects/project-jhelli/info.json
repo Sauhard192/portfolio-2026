@@ -1,0 +1,25 @@
+{
+  "slug": "project-jhelli",
+  "title": "Project Jhelli",
+  "roles": ["Grahic Design", "Poster Design", "Typography"],
+  "projectType": "Graphic Design",
+  "date": "2024",
+  "description": "Jhelli is an experimental graphic design project exploring bold typography, unconventional layouts, and visual distortion. The project focuses on pushing familiar graphic elements into more expressive, playful compositions.",
+  "thumbnail": "thumbnail.png",
+   "hero": "cover.png",
+
+  "sections": [
+    {
+       "images":[
+      "img1.png"
+    ]
+  },
+
+    {
+     "images":[
+      "img2.png",
+      "img3.png"
+    ]
+  }
+  ]
+}
