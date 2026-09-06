@@ -6,6 +6,7 @@ import arrowLeft from '../../assets/icons/arrow-left.svg'
 import arrowRight from '../../assets/icons/arrow-right.svg'
 
 import { usePageEntrance } from '../../hooks/usePageEntrance'
+import { useDocumentTitle } from '../../hooks/useDocumentTitle'
 import type { MediaCollection, MediaItem } from '../../types/media'
 import { CustomCursor } from '../home/CustomCursor'
 import { getSwipeDirection, mediaDateLabel, wrapMediaIndex } from './mediaNavigation'
@@ -24,17 +25,12 @@ export function MediaViewer({ collection, items, slug }: MediaViewerProps) {
   const item = items[index]
   const touch = useRef<{ x: number; y: number; time: number } | null>(null)
   usePageEntrance(pageRef)
+  useDocumentTitle(`${item?.title ?? 'Image not found'} — Sauhard Shrestha`)
 
   const hrefAt = (offset: number) => `/${collection}/${items[wrapMediaIndex(index + offset, items.length)]?.slug}`
   const isBlocked = () => Boolean(
     pageRef.current?.querySelector('[data-menu-open="true"]') || document.querySelector('.route-transition'),
   )
-
-  useEffect(() => {
-    const previousTitle = document.title
-    document.title = `${item?.title ?? 'Image not found'} — ${collection === 'art' ? 'Art' : 'Photography'} — Jhelli`
-    return () => { document.title = previousTitle }
-  }, [collection, item])
 
   useEffect(() => {
     if (!item || items.length < 2) return

@@ -5,12 +5,14 @@ import { InfiniteProjectGallery } from '../components/home/InfiniteProjectGaller
 import { SiteHeader } from '../components/layout/SiteHeader'
 import { caseStudies } from '../content/caseStudies'
 import { usePageEntrance } from '../hooks/usePageEntrance'
+import { useDocumentTitle } from '../hooks/useDocumentTitle'
 import type { HomeView } from '../types/home'
 
 export function HomePage() {
   const pageRef = useRef<HTMLElement>(null)
   const [view, setView] = useState<HomeView>('grid')
   usePageEntrance(pageRef, view)
+  useDocumentTitle('Portfolio — Sauhard Shrestha')
 
   return (
     <main ref={pageRef} className="home-page portfolio-background">

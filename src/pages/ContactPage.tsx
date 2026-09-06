@@ -4,10 +4,12 @@ import { CustomCursor } from '../components/home/CustomCursor'
 import { SiteHeader } from '../components/layout/SiteHeader'
 import { ContactLinkButton } from '../components/ui/ContactLinkButton'
 import { usePageEntrance } from '../hooks/usePageEntrance'
+import { useDocumentTitle } from '../hooks/useDocumentTitle'
 
 export function ContactPage() {
   const pageRef = useRef<HTMLElement>(null)
   usePageEntrance(pageRef)
+  useDocumentTitle('Contact — Sauhard Shrestha')
 
   return (
     <main ref={pageRef} className="contact-page portfolio-background">

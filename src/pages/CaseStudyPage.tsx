@@ -8,6 +8,7 @@ import { NextProjectFooter } from '../components/case-study/NextProjectFooter'
 import { nextProjectIndex } from '../components/case-study/caseStudyNavigation'
 import { caseStudies } from '../content/caseStudies'
 import { usePageEntrance } from '../hooks/usePageEntrance'
+import { useDocumentTitle } from '../hooks/useDocumentTitle'
 import type { CaseStudy } from '../types/caseStudy'
 import type { CSSProperties } from 'react'
 
@@ -22,9 +23,9 @@ export function CaseStudyPage() {
 function CaseStudyContent({ project, next }: { project?: CaseStudy; next?: CaseStudy }) {
   const pageRef = useRef<HTMLElement>(null)
   usePageEntrance(pageRef)
+  useDocumentTitle(`${project?.title ?? 'Project not found'} — Sauhard Shrestha`)
   useLayoutEffect(() => {
     window.scrollTo(0, 0)
-    document.title = `${project?.title ?? 'Project not found'} — Jhelli`
     pageRef.current?.querySelector<HTMLElement>('h1')?.focus({ preventScroll: true })
   }, [project])
 
