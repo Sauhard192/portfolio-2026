@@ -4,7 +4,7 @@
 
 This document defines the visual and interaction direction for Jhelli's personal portfolio across UI/UX design, art, and photography.
 
-The reference is [K95](https://k95.it/), studied for its spatial gallery, minimal persistent interface, alternate browsing modes, image-led hierarchy, and interaction-driven navigation. The implementation must remain original. It must not reproduce K95's brand identity, blue/yellow color system, logo, typography, central 3D sculpture, exact ring/spiral geometry, project arrangement, or transitions.
+The design emphasizes spatial galleries, a minimal persistent interface, alternate browsing modes, image-led hierarchy, and interaction-driven navigation. The implementation must remain original.
 
 Figma remains the source of truth for page-specific static layouts. This document defines the broader visual and behavioral system used when Figma does not specify a state or breakpoint.
 
@@ -61,9 +61,9 @@ The visual system may feel unusual, but users must always understand:
 
 ---
 
-## Inspiration boundary
+## Gallery design principles
 
-### Principles adapted from K95
+### Spatial and interaction principles
 
 - A full-viewport gallery that feels like a space rather than a conventional page
 - Fixed edge-aligned identity and navigation
@@ -75,17 +75,7 @@ The visual system may feel unusual, but users must always understand:
 - A simplified mobile shell with a menu control instead of desktop navigation
 - Scroll or drag input used to explore a bounded gallery world
 
-### Elements that must not be copied
-
-- K95's electric-blue surface and yellow highlight
-- K95's logo, wordmark, or letter construction
-- Its white metallic center sculpture
-- Its exact Rings and Spiral formations
-- Its wireframe room, camera path, or object placement
-- Its language switch, content wording, project counter format, or footer copy
-- Its transition masks, shader appearance, or distortion treatment
-
-The result should share a level of confidence and spatial thinking, not a recognizable composition.
+Gallery composition, branding, motion, and copy should be original to this portfolio.
 
 ---
 
@@ -104,8 +94,6 @@ Use the portfolio's existing neutral color theme. Color should come primarily fr
 
 ### Color rules
 
-- Do not introduce K95's blue or yellow as interface colors.
-- Do not derive accent colors from the reference site.
 - Project imagery may contain any color; interface colors remain neutral.
 - Active state is expressed primarily through near-black ink, opacity, scale, or position.
 - Keep shadows nearly absent. Use contrast, space, and layering instead.
@@ -251,16 +239,15 @@ Art and Photography share the same gallery components, interaction rules, and co
 
 ### Spiral view
 
-The Spiral view may take inspiration from K95's sense of a navigable media field, but the composition must be original.
+The Spiral view should feel like a navigable media field with an original composition.
 
 - Use one shared React Three Fiber canvas for the gallery
-- Arrange media along a custom helical or ribbon path rather than K95's formation
+- Arrange media along a custom helical or ribbon path
 - Keep the current item dominant and readable; surrounding items establish direction and depth
 - Scroll or drag advances through one bounded sequence
 - The camera should move predictably along the portfolio's own path system
 - Selection opens the same Media View used by Grid view
 - HTML overlays provide navigation, labels, status, and accessibility
-- Do not recreate a room-like blue wireframe, metallic centerpiece, or K95's camera arrangement
 
 ### Spiral mobile strategy
 
@@ -416,8 +403,6 @@ Test at 360, 390, 768, 1024, 1440, and 1920 pixels without horizontal overflow.
 
 ## Do not do
 
-- Do not copy K95's color palette or use electric blue as the site surface
-- Do not recreate its central metallic object or exact gallery formations
 - Do not apply perspective, skew, or rotation to every card in the normal Grid view
 - Do not turn navigation, text, or metadata into WebGL
 - Do not maintain separate datasets for alternate views
@@ -446,8 +431,8 @@ Test at 360, 390, 768, 1024, 1440, and 1920 pixels without horizontal overflow.
 
 ## Acceptance checklist
 
-- The interface uses the portfolio's gray/near-black theme, not K95's colors.
-- The result is recognizably Jhelli's portfolio rather than a K95 reproduction.
+- The interface uses the portfolio's gray/near-black theme.
+- The result is recognizably Jhelli's portfolio.
 - Images remain the dominant visual material.
 - Alternate views share their content datasets.
 - Home is 4 columns on desktop, 3 on tablet, and 2 on mobile.

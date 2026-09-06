@@ -410,6 +410,10 @@
 }
 
 @media (max-width: 1024px) {
+  .home-page .project-card__touch-meta {
+    display: none;
+  }
+
   .menu-toggle {
     position: absolute;
     z-index: 3;

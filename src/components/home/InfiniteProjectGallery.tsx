@@ -121,7 +121,7 @@ export function InfiniteProjectGallery({
     window.history.scrollRestoration = 'manual'
     const lenis = new Lenis({
       autoRaf: true,
-      duration: reducedMotion ? 0 : 0.5,
+      duration: reducedMotion ? 0 : 0.35,
       easing: (progress) => 1 - Math.pow(1 - progress, 4),
       infinite: false,
       overscroll: false,
@@ -132,7 +132,26 @@ export function InfiniteProjectGallery({
 
     let cycleHeight = 0
     let scrollOrigin = 0
-    let isScrollScaled = false
+    let zoomPhase: 'idle' | 'out' | 'hold' | 'return' = 'idle'
+    let scrolling = false
+
+    const recoverZoom = () => {
+      // Finish the full zoom-out before allowing recovery.
+      if (zoomPhase !== 'hold' || scrolling) return
+      zoomPhase = 'return'
+      gsap.to(zoomLayer, { scale: 1, duration: 0.75, ease: 'power3.out', overwrite: true })
+    }
+
+    const startZoom = () => {
+      zoomPhase = 'out'
+      gsap.to(zoomLayer, {
+        scale: 0.97,
+        duration: 0.12,
+        ease: 'power2.out',
+        overwrite: true,
+        onComplete: () => { zoomPhase = 'hold'; recoverZoom() },
+      })
+    }
     let centeredProjectSlug = ''
     let listItemPositions: Array<{ centerAtLoopStart: number; projectIndex: number }> = []
 
@@ -202,30 +221,12 @@ export function InfiniteProjectGallery({
 
       if (reducedMotion || window.innerWidth <= 900) return
 
-      if (scrollState.isScrolling === false) {
-        if (!isScrollScaled) return
-
-        // zoom in back here
-        isScrollScaled = false
-        gsap.to(zoomLayer, {
-          scale: 1,
-          duration: .75,
-          ease: 'power3.out',
-          overwrite: true,
-        })
-        return
+      scrolling = scrollState.isScrolling !== false
+      if (scrolling && (zoomPhase === 'idle' || zoomPhase === 'return')) {
+        startZoom()
       }
-
-      // zoom out here
-      if (!isScrollScaled) {
-        isScrollScaled = true
-        gsap.to(zoomLayer, {
-          scale: 0.97,
-          duration: 0.12,
-          ease: 'power2.out',
-          overwrite: true,
-        })
-      }
+      // Recover immediately at scroll completion, without an extra pause.
+      recoverZoom()
     }
 
     const cycleObserver = new ResizeObserver(handleResize)

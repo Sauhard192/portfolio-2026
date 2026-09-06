@@ -16,9 +16,9 @@ export function NextProjectFooter({ project, pageRef }: {
 
   return <footer ref={footerRef} className="next-project" aria-labelledby="next-project-heading">
     <div className="next-project-heading">UP NEXT</div>
-    <div className="next-project__link" data-cursor="interactive">
-      <Link className="next-project__hit-area" to={href} aria-label={`Next project: ${project.title}`} />
+    <div className="next-project__link">
       <div className="next-project__preview">
+        <Link className="next-project__hit-area" to={href} aria-label={`Next project: ${project.title}`} data-cursor="interactive" data-tooltip="OPEN" />
         <span className="next-project__label next-project__label--scroll">Keep Scrolling!</span>
         <span className="next-project__label next-project__label--click">View Project</span>
         {/* Use the detail variant: square cropping can magnify a smaller srcset candidate. */}

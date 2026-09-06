@@ -6,7 +6,7 @@ Personal portfolio website for UI/UX design, art, and photography.
 
 The site should feel minimal, experimental, image-focused, and interaction-driven.
 
-Visual inspiration may come from contemporary creative portfolio websites such as K95, but implementations must be original.
+Visual inspiration may come from contemporary creative portfolio websites, but implementations must be original.
 
 Prioritize:
 

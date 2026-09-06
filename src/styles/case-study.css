@@ -182,9 +182,9 @@
 .case-study-page[data-footer-active='true'] .site-cursor { --color-foreground: var(--color-surface); }
 
 @media (hover: hover) {
-  .next-project__link:hover img { transform: scale(1.025); }
+  .next-project__preview:has(.next-project__hit-area:hover) img { transform: scale(1.03); }
 }
-.next-project__link:active img { transform: scale(0.98); transition-duration: var(--duration-fast); }
+.next-project__preview:has(.next-project__hit-area:active) img { transform: scale(0.98); transition-duration: var(--duration-fast); }
 
 @media (max-width: 1024px) {
   .case-study__metadata { grid-template-columns: minmax(0, 1fr); gap: var(--space-6); }
@@ -212,5 +212,5 @@
   .next-project__label--scroll { display: none; }
   .next-project__label--click { display: block; }
   .next-project__preview img { transition: none; }
-  .next-project__link:is(:hover, :active) img { transform: none; }
+  .next-project__preview:has(.next-project__hit-area:is(:hover, :active)) img { transform: none; }
 }
