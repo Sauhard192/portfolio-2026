@@ -71,7 +71,7 @@ export function CustomCursor({
         : null
 
     const updateFromElement = (element: HTMLElement | null) => {
-      setIsInteractive(Boolean(element))
+      setIsInteractive(Boolean(element && element.dataset.cursor !== 'dot'))
       if (introTooltipActive) return
       const title = element?.dataset.tooltip
       setTooltip(title ? { title, year: element?.dataset.year ?? '', icon: element?.dataset.tooltipIcon } : null)
@@ -96,7 +96,7 @@ export function CustomCursor({
       const element = findCursorTarget(event.target)
       if (!element) return
 
-      setIsInteractive(true)
+      setIsInteractive(element.dataset.cursor !== 'dot')
       if (tooltipSuppressedByScroll) return
       if (introTooltipActive) {
         setTooltip(null)
@@ -112,7 +112,7 @@ export function CustomCursor({
       const to = findCursorTarget(event.relatedTarget)
       if (!from || from === to) return
 
-      setIsInteractive(Boolean(to))
+      setIsInteractive(Boolean(to && to.dataset.cursor !== 'dot'))
       if (tooltipSuppressedByScroll) return
       if (introTooltipActive) {
         setTooltip(to ? null : initialTooltip ? { title: initialTooltip, year: '' } : null)
@@ -129,9 +129,11 @@ export function CustomCursor({
       if (tooltipSuppressedByScroll) return
       if (introTooltipActive) {
         setTooltip(
-          detail.interactive || !initialTooltip
-            ? null
-            : { title: initialTooltip, year: '' },
+          detail.interactive && detail.tooltip
+            ? { title: detail.tooltip, year: detail.year ?? '' }
+            : initialTooltip
+              ? { title: initialTooltip, year: '' }
+              : null,
         )
         return
       }

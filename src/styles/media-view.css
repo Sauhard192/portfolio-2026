@@ -38,10 +38,21 @@
 }
 
 .media-view__stage,
+.media-view__track,
 .media-view__item {
   position: absolute;
   inset: 0;
 }
+.media-view__item[inert] { pointer-events: none; }
+.media-view__track { user-select: none; }
+.media-view__image-box { cursor: grab; }
+.media-view:has([data-dragging='true']) { cursor: grabbing; }
+.media-view:has([data-dragging='true']) .media-view__image-box { cursor: grabbing; }
+.media-view__overlay { pointer-events: none; }
+.media-view__overlay :is(.media-view__zone, figcaption) { pointer-events: auto; }
+/* Loading is the only automatic animation within the viewer. */
+.media-view .progressive-image > img,
+.media-view .image-skeleton { transition: none; }
 
 .media-view__item {
   /* The image and hit areas share its actual, uncropped aspect ratio. */
@@ -111,25 +122,25 @@
 
 .media-view__controls {
   position: fixed;
-  z-index: var(--z-content);
-  bottom: calc(var(--space-5) + env(safe-area-inset-bottom));
-  left: 50%;
-  transform: translateX(-50%);
-  display: none;
-  gap: var(--space-3);
+  inset: 0;
+  z-index: var(--z-sticky);
+  pointer-events: none;
 }
 
 .media-view__arrow {
+  position: absolute;
+  top: 50%;
+  translate: 0 -50%;
   display: grid;
   place-items: center;
-  width: var(--space-8);
-  height: var(--space-8);
-  border-radius: var(--radius-pill);
-  transition: transform var(--duration-fast) var(--ease-out);
+  width: 48px;
+  height: 48px;
+  pointer-events: auto;
   touch-action: manipulation;
 }
-
-.media-view__arrow img { width: var(--space-5); height: var(--space-5); }
+.media-view__arrow--previous { left: max(var(--space-2), env(safe-area-inset-left)); }
+.media-view__arrow--next { right: max(var(--space-2), env(safe-area-inset-right)); }
+.media-view__arrow img { width: 32px; height: 32px; }
 .media-view__close:active,
 .media-view__arrow:active { transform: scale(1.08); }
 
@@ -174,6 +185,11 @@
   .media-view__controls { display: flex; }
 }
 
+@media (max-width: 1024px) {
+  /* Anchor metadata to the maximum image area, not each image's actual height. */
+  .media-view__overlay > .media-view__figure { height: var(--media-max-height); }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .media-view__close,
   .media-view__arrow { transition: none; }
@@ -182,5 +198,5 @@
   .media-view__arrow:hover,
   .media-view__arrow:active { transform: none; }
   .media-view__arrow:active { opacity: 0.75; }
-  .media-view__image-box img { transition-duration: 120ms; }
+  .media-view__image-box img { transition: none; }
 }

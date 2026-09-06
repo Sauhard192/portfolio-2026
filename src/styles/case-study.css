@@ -42,7 +42,13 @@
   min-height: 2.75rem;
 }
 .case-study__hero,
-.case-study__image { margin: 0; background: var(--color-background); overflow: hidden; }
+.case-study__image { margin: 0; background: transparent; overflow: hidden; }
+.case-study :is(.case-study__hero, .case-study__image) .image-skeleton {
+  background: transparent;
+}
+.case-study :is(.case-study__hero, .case-study__image) .image-skeleton::after {
+  display: none;
+}
 .case-study__hero { aspect-ratio: var(--case-image-ratio, 16 / 9); }
 .case-study__hero .progressive-image { height: 100%; aspect-ratio: auto; }
 .case-study__hero img { width: 100%; height: 100%; object-fit: cover; }
@@ -180,6 +186,10 @@
   color: var(--color-surface);
 }
 .case-study-page[data-footer-active='true'] .site-cursor { --color-foreground: var(--color-surface); }
+/* The pinned footer has its own stacking context: leave its progress rail uncovered. */
+.case-study-page[data-footer-active='true'] .gallery-edge-lens {
+  clip-path: inset(0 0 0 var(--space-1));
+}
 
 @media (hover: hover) {
   .next-project__preview:has(.next-project__hit-area:hover) img { transform: scale(1.03); }

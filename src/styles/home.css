@@ -48,7 +48,6 @@
 
 .view-switcher,
 .menu-toggle,
-.media-view__arrow,
 .site-cursor__tooltip {
   border: var(--glass-border);
   background: var(--glass-background);
@@ -571,7 +570,6 @@
 @media (prefers-reduced-transparency: reduce) {
   .view-switcher,
   .menu-toggle,
-  .media-view__arrow,
   .site-cursor__tooltip {
     background: var(--color-surface);
     box-shadow: inset 0 0 0 1px rgba(16, 15, 15, 0.12);

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState, type RefObject } from 'react'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import * as THREE from 'three'
+import { CaseStudyLensSource } from './caseStudyLensSource'
 
 // Distances in CSS pixels. Keep the bend inside the captured strip.
 const PADDING = 32
@@ -57,9 +58,9 @@ const fragmentShader = `
   }
 `
 
-type Props = { galleryRef: RefObject<HTMLDivElement | null> }
+type Props = { galleryRef: RefObject<HTMLElement | null>; source?: 'gallery' | 'case-study' }
 
-export default function GalleryEdgeLensCanvas({ galleryRef }: Props) {
+export default function GalleryEdgeLensCanvas({ galleryRef, source }: Props) {
   const [failed, setFailed] = useState(false)
   const [ready, setReady] = useState(false)
   if (failed) return null
@@ -67,14 +68,14 @@ export default function GalleryEdgeLensCanvas({ galleryRef }: Props) {
     <Canvas dpr={[1, 1.5]} gl={{ alpha: true, antialias: false }} fallback={<span />} onCreated={({ gl }) => {
       gl.domElement.addEventListener('webglcontextlost', () => setFailed(true), { once: true })
     }}>
-      <LensScene galleryRef={galleryRef} onReady={() => setReady(true)} onFailure={() => setFailed(true)} />
+      <LensScene galleryRef={galleryRef} source={source} onReady={() => setReady(true)} onFailure={() => setFailed(true)} />
     </Canvas>
   </div>
 }
 
-function LensScene({ galleryRef, onReady, onFailure }: Props & { onReady: () => void; onFailure: () => void }) {
+function LensScene({ galleryRef, source, onReady, onFailure }: Props & { onReady: () => void; onFailure: () => void }) {
   const { size } = useThree()
-  const edge = size.width <= 600 ? 40 : size.width <= 1024 ? 60 : 80
+  const edge = size.width <= 600 ? 100 : size.width <= 1024 ? 80 : 80
   const band = edge + PADDING
   const dpr = Math.min(devicePixelRatio, 1.5)
   const resources = useMemo(() => {
@@ -96,10 +97,12 @@ function LensScene({ galleryRef, onReady, onFailure }: Props & { onReady: () => 
   const targets = useRef<HTMLElement[]>([])
   const lastSignature = useRef('')
   const announced = useRef(false)
+  const caseSource = useRef<CaseStudyLensSource | null>(null)
   useEffect(() => {
     const gallery = galleryRef.current
     if (!gallery) return
     const collect = () => {
+      if (source === 'case-study') caseSource.current = new CaseStudyLensSource(gallery)
       targets.current = Array.from(gallery.querySelectorAll<HTMLElement>('.project-card img, .project-list-item, .project-list-preview img'))
       lastSignature.current = ''
     }
@@ -107,10 +110,20 @@ function LensScene({ galleryRef, onReady, onFailure }: Props & { onReady: () => 
     const observer = new MutationObserver(collect)
     observer.observe(gallery, { childList: true, subtree: true })
     return () => { observer.disconnect(); resources.texture.dispose() }
-  }, [galleryRef, resources])
+  }, [galleryRef, resources, source])
 
   useFrame(() => {
-    if (document.hidden || !galleryRef.current || galleryRef.current.dataset.entranceReady !== 'true') return
+    if (document.hidden || !galleryRef.current) return
+    if (source === 'case-study') {
+      try {
+        if (caseSource.current?.paint(resources.context, size.width, size.height, band, dpr)) {
+          resources.texture.needsUpdate = true
+          if (!announced.current) { announced.current = true; onReady() }
+        }
+      } catch { onFailure() }
+      return
+    }
+    if (galleryRef.current.dataset.entranceReady !== 'true') return
     const gallery = galleryRef.current
     const page = gallery.closest('.portfolio-background')!
     const pageStyle = getComputedStyle(page)

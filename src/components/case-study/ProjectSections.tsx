@@ -46,6 +46,7 @@ export function CaseImage({ image, priority = false, sizes = '100vw' }: {
   // Native animated images have no pause API: use a still while inactive.
   const animated = playing && image.animatedSrc && failedSource !== image.animatedSrc
   return <ProgressiveImage containerRef={ref} src={animated ? image.animatedSrc : image.src} srcSet={animated ? undefined : image.srcSet} sizes={sizes}
+    data-lens-animated={Boolean(animated)}
     width={image.width} height={image.height} alt={image.alt}
     loading={priority ? 'eager' : 'lazy'} fetchPriority={priority ? 'high' : 'auto'} decoding="async"
     onFailure={animated ? () => setFailedSource(image.animatedSrc) : undefined}

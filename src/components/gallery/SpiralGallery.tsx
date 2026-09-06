@@ -52,10 +52,10 @@ const VERTICAL_SPACING = .5 // Preserves your current vertical-spacing setting.
 // Edit breakpoint radius, cardWidth, cardsPerTurn and edgePadding in spiralMath.ts.
 const CARD_ASPECT_RATIO = 4/3 // Width / height; 1 = square.
 
-const dispatchCursorTarget = (interactive: boolean, tooltip?: string) => {
+const dispatchCursorTarget = (interactive: boolean, tooltip?: string, year?: string) => {
   window.dispatchEvent(
     new CustomEvent('portfolio:cursor-target', {
-      detail: { interactive, tooltip },
+      detail: { interactive, tooltip, year },
     }),
   )
 }
@@ -313,11 +313,13 @@ function SpiralScene({ collection, items, motion, onReady, onErrors }: SpiralSce
     }
   })
 
-  const handlePointerOver = (event: ThreeEvent<PointerEvent>) => {
+  const handlePointerOver = (event: ThreeEvent<PointerEvent>, slotIndex: number) => {
     event.stopPropagation()
     if (motion.current) motion.current.hovering = true
     document.body.style.cursor = 'pointer'
-    dispatchCursorTarget(true, 'VIEW')
+    const { itemIndex } = getSpiralSlot(slotIndex, slotCount, motion.current.position, items.length)
+    const item = items[itemIndex]
+    dispatchCursorTarget(true, item.title, item.date)
   }
 
   const handlePointerOut = (event: ThreeEvent<PointerEvent>) => {
@@ -340,7 +342,7 @@ function SpiralScene({ collection, items, motion, onReady, onErrors }: SpiralSce
           THREE.Mesh.prototype.raycast.call(this, raycaster, intersections)
         }
       }}
-      onPointerOver={handlePointerOver}
+      onPointerOver={(event) => handlePointerOver(event, index)}
       onPointerOut={handlePointerOut}
       onClick={(event) => {
         event.stopPropagation()

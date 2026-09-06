@@ -2,6 +2,7 @@ import { useLayoutEffect, useRef } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { CustomCursor } from '../components/home/CustomCursor'
 import { SiteHeader } from '../components/layout/SiteHeader'
+import { GalleryEdgeLens } from '../components/gallery/GalleryEdgeLens'
 import { ContactLinkButton } from '../components/ui/ContactLinkButton'
 import { CaseImage, ProjectSection, ProjectText } from '../components/case-study/ProjectSections'
 import { NextProjectFooter } from '../components/case-study/NextProjectFooter'
@@ -63,6 +64,7 @@ function CaseStudyContent({ project, next }: { project?: CaseStudy; next?: CaseS
       <Link to="/" data-cursor="interactive">Return to projects</Link>
     </section>}
     {next && <NextProjectFooter project={next} pageRef={pageRef} />}
+    <GalleryEdgeLens galleryRef={pageRef} source="case-study" />
     <CustomCursor />
   </main>
 }

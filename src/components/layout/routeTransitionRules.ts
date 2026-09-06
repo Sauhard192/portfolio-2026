@@ -6,7 +6,7 @@ export function shouldAnimateRouteChange(from: string, to: string) {
   if (from === to) return false
   const fromCollection = mediaCollection(from)
   const toCollection = mediaCollection(to)
-  // Moving through one collection fades content only, not the whole page.
+  // Only image-to-image navigation within a collection is instant.
   if (fromCollection && fromCollection === toCollection) return false
   return Boolean((CINEMATIC_ROUTES.has(from) || fromCollection || isCaseStudy(from)) &&
     (CINEMATIC_ROUTES.has(to) || toCollection || isCaseStudy(to)))

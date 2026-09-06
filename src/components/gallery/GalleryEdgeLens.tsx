@@ -8,7 +8,9 @@ class LensFallback extends Component<{ children: ReactNode }, { failed: boolean 
   render() { return this.state.failed ? null : this.props.children }
 }
 
-export function GalleryEdgeLens({ galleryRef }: { galleryRef: RefObject<HTMLDivElement | null> }) {
+export function GalleryEdgeLens({ galleryRef, source = 'gallery' }: {
+  galleryRef: RefObject<HTMLElement | null>; source?: 'gallery' | 'case-study'
+}) {
   const [enabled, setEnabled] = useState(false)
   useEffect(() => {
     const preference = matchMedia('(prefers-reduced-motion: reduce)')
@@ -18,6 +20,6 @@ export function GalleryEdgeLens({ galleryRef }: { galleryRef: RefObject<HTMLDivE
     return () => preference.removeEventListener('change', update)
   }, [])
   return enabled ? <LensFallback><Suspense fallback={null}>
-    <EdgeLensCanvas galleryRef={galleryRef} />
+    <EdgeLensCanvas galleryRef={galleryRef} source={source} />
   </Suspense></LensFallback> : null
 }
