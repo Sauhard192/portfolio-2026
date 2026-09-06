@@ -4,6 +4,18 @@
   overflow: clip;
 }
 
+.gallery-edge-lens {
+  position: fixed;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+  opacity: 0;
+}
+.gallery-edge-lens[data-ready='true'] { opacity: 1; }
+.gallery-edge-lens * { 
+  pointer-events: none !important;
+}
+
 .home-header {
   position: fixed;
   z-index: var(--z-sticky);

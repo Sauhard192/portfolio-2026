@@ -6,6 +6,7 @@ import Lenis from 'lenis'
 
 import type { HomeView } from '../../types/home'
 import { gridCycleLength } from './gridCycle'
+import { GalleryEdgeLens } from '../gallery/GalleryEdgeLens'
 
 export interface InfiniteGalleryItem {
   slug: string
@@ -327,6 +328,7 @@ export function InfiniteProjectGallery({
           </div>
         )}
       </div>
+      <GalleryEdgeLens galleryRef={galleryRef} />
     </div>
   )
 }
