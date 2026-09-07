@@ -4,6 +4,7 @@ interface ScrambleTextProps {
   children: string
   duration?: number
   className?: string
+  disabled?: boolean
 }
 
 const FRAME_INTERVAL = 32
@@ -12,6 +13,7 @@ export function ScrambleText({
   children,
   duration = 300,
   className = '',
+  disabled = false,
 }: ScrambleTextProps) {
   const [displayText, setDisplayText] = useState(children)
   const animationFrameRef = useRef<number | null>(null)
@@ -25,12 +27,14 @@ export function ScrambleText({
   }
 
   useEffect(() => {
+    stopAnimation()
     setDisplayText(children)
     return stopAnimation
-  }, [children])
+  }, [children, disabled])
 
   const scramble = (event: React.PointerEvent<HTMLSpanElement>) => {
     if (
+      disabled ||
       event.pointerType === 'touch' ||
       window.matchMedia('(prefers-reduced-motion: reduce)').matches
     ) {

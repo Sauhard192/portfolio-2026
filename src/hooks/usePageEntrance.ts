@@ -1,6 +1,14 @@
 import { type RefObject, useLayoutEffect, useRef } from 'react'
 import { gsap } from 'gsap'
-import { CASE_REVEAL_DELAY, CASE_REVEAL_DURATION, CASE_IMAGE_START_SCALE } from '../components/case-study/revealTiming'
+import { CASE_CONTENT_READY_EVENT, isInitialCaseStudyImage } from '../components/case-study/revealOwnership'
+import {
+  CASE_IMAGE_STAGGER,
+  CASE_IMAGE_START_SCALE,
+  CASE_INITIAL_CONTENT_OVERLAP,
+  CASE_REVEAL_DELAY,
+  CASE_REVEAL_DURATION,
+  CASE_SIDE_REVEAL_START,
+} from '../components/case-study/revealTiming'
 
 const VIEWPORT_EDGE_BUFFER = 64
 
@@ -42,12 +50,34 @@ export function usePageEntrance(scopeRef: RefObject<HTMLElement | null>, view?: 
       gsap.set(allImages, { opacity: 0 })
     }
     const hero = scope.querySelector<HTMLElement>('.case-study__hero')
+    if (hero) delete scope.dataset.caseContentReady
     if (hero && !reducedMotion) gsap.set(hero, { clipPath: 'inset(100% 0% 0% 0%)' })
+    const initialCaseImages = hero
+      ? Array.from(scope.querySelectorAll<HTMLElement>('.case-study__image[data-case-reveal]'))
+        .filter(isInitialCaseStudyImage)
+      : []
+    initialCaseImages.forEach((element) => {
+      element.dataset.caseRevealOwner = 'entrance'
+    })
+    if (!reducedMotion) {
+      initialCaseImages.forEach((element) => {
+        const sideways = element.parentElement?.dataset.columns === '1'
+        gsap.set(element, {
+          clipPath: sideways ? CASE_SIDE_REVEAL_START : 'inset(100% 0% 0% 0%)',
+        })
+        const image = element.querySelector('.progressive-image')
+        if (image) gsap.set(image, { scale: CASE_IMAGE_START_SCALE })
+      })
+    }
     if (allMetadata.length > 0) gsap.set(allMetadata, { opacity: 0, y: 14 })
 
     let timeline: gsap.core.Timeline | null = null
     let entranceFrame = 0
     const gallery = scope.querySelector<HTMLElement>('.project-gallery')
+    const markCaseContentReady = () => {
+      scope.dataset.caseContentReady = 'true'
+      scope.dispatchEvent(new Event(CASE_CONTENT_READY_EVENT))
+    }
 
     const startEntrance = () => {
       cancelAnimationFrame(entranceFrame)
@@ -59,7 +89,9 @@ export function usePageEntrance(scopeRef: RefObject<HTMLElement | null>, view?: 
         if (allImages.length) gsap.set(allImages, { opacity: 0 })
         const textLines = allTextLines.filter(isVisibleInViewport)
         const visibleImages = allImages.filter(isVisibleInViewport)
-        const images = gsap.utils.shuffle([...visibleImages])
+        const images = hero
+          ? visibleImages.filter((element) => element !== hero)
+          : gsap.utils.shuffle([...visibleImages])
         const metadata = allMetadata.filter(isVisibleInViewport)
         const hiddenTextLines = allTextLines.filter((element) => !textLines.includes(element))
         const hiddenImages = allImages.filter((element) => !visibleImages.includes(element))
@@ -76,8 +108,9 @@ export function usePageEntrance(scopeRef: RefObject<HTMLElement | null>, view?: 
         }
 
         if (reducedMotion) {
+          markCaseContentReady()
           timeline = gsap.timeline().to(
-            [...headerElements, ...textLines, ...images, ...metadata],
+            [...headerElements, ...textLines, ...(hero && visibleImages.includes(hero) ? [hero] : []), ...images, ...metadata],
             {
               opacity: 1,
               y: 0,
@@ -103,26 +136,62 @@ export function usePageEntrance(scopeRef: RefObject<HTMLElement | null>, view?: 
           )
         }
 
-        if (images.length > 0) {
-          const maskedHero = hero && images.includes(hero)
+        const entranceHero = hero && visibleImages.includes(hero) ? hero : null
+        if (entranceHero) {
+          timeline.addLabel('caseHero', `+=${CASE_REVEAL_DELAY}`)
           timeline.to(
-            images,
+            entranceHero,
             {
               opacity: 1,
-              ...(maskedHero ? { clipPath: 'inset(0% 0% 0% 0%)', clearProps: 'clipPath' } : {}),
-              duration: maskedHero ? CASE_REVEAL_DURATION : 0.62,
-              stagger: 0.075,
+              clipPath: 'inset(0% 0% 0% 0%)',
+              duration: CASE_REVEAL_DURATION,
+              clearProps: 'clipPath',
               ease: 'power2.out',
             },
-            maskedHero ? `+=${CASE_REVEAL_DELAY}` : '-=0.18',
+            'caseHero',
           )
-          const heroImage = maskedHero ? hero.querySelector('.progressive-image') : null
+          const heroImage = entranceHero.querySelector('.progressive-image')
           if (heroImage) timeline.fromTo(heroImage,
             { scale: CASE_IMAGE_START_SCALE },
             { scale: 1, duration: CASE_REVEAL_DURATION, ease: 'power2.out', clearProps: 'transform' },
-            '<',
+            'caseHero',
+          )
+
+          const caseTimeline = timeline
+          caseTimeline.addLabel(
+            'caseContent',
+            `caseHero+=${CASE_REVEAL_DURATION * CASE_INITIAL_CONTENT_OVERLAP}`,
+          )
+          caseTimeline.call(markCaseContentReady, undefined, 'caseContent')
+          if (initialCaseImages.length > 0) {
+            initialCaseImages.forEach((element, index) => {
+              const position = `caseContent+=${index * CASE_IMAGE_STAGGER}`
+              caseTimeline.to(element, {
+                clipPath: 'inset(0% 0% 0% 0%)',
+                duration: CASE_REVEAL_DURATION,
+                ease: 'power2.out',
+                clearProps: 'clipPath',
+              }, position)
+              const image = element.querySelector('.progressive-image')
+              if (image) caseTimeline.to(image, {
+                scale: 1,
+                duration: CASE_REVEAL_DURATION,
+                ease: 'power2.out',
+                clearProps: 'transform',
+              }, position)
+            })
+          }
+        }
+
+        if (images.length > 0) {
+          timeline.to(
+            images,
+            { opacity: 1, duration: 0.62, stagger: 0.075, ease: 'power2.out' },
+            '-=0.18',
           )
         }
+
+        if (!entranceHero) markCaseContentReady()
 
         if (metadata.length > 0) {
           timeline.to(
@@ -145,8 +214,15 @@ export function usePageEntrance(scopeRef: RefObject<HTMLElement | null>, view?: 
       gallery?.removeEventListener('portfolio:gallery-ready', startEntrance)
       cancelAnimationFrame(entranceFrame)
       timeline?.kill()
+      delete scope.dataset.caseContentReady
       const heroImage = hero?.querySelector('.progressive-image')
       if (heroImage) gsap.set(heroImage, { clearProps: 'transform' })
+      initialCaseImages.forEach((element) => {
+        delete element.dataset.caseRevealOwner
+        gsap.set(element, { clearProps: 'clipPath' })
+        const image = element.querySelector('.progressive-image')
+        if (image) gsap.set(image, { clearProps: 'transform' })
+      })
       const allElements = [...headerElements, ...allTextLines, ...allImages, ...allMetadata]
       if (allElements.length > 0) {
         gsap.set(allElements, { clearProps: 'opacity,transform,clipPath' })

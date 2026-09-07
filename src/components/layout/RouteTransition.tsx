@@ -1,4 +1,4 @@
-import { type ReactNode, useEffect, useRef, useState } from 'react'
+import { type ReactNode, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { Routes, useLocation, type Location } from 'react-router-dom'
 import { gsap } from 'gsap'
 import { shouldAnimateRouteChange } from './routeTransitionRules'
@@ -35,32 +35,40 @@ export function RouteTransition({ children }: RouteTransitionProps) {
       return
     }
 
-    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
     setTransitionActive(true)
+  }, [displayLocation, location])
 
-    let timeline: gsap.core.Timeline | null = null
-    const frame = requestAnimationFrame(() => {
-      const dimmer = dimmerRef.current
-      const curtain = curtainRef.current
-      if (!dimmer || !curtain) return
+  useLayoutEffect(() => {
+    if (!transitionActive) return
 
-      timeline = gsap.timeline({
-        onComplete: () => {
-          // Swap pages after the curtain reaches the top.
-          window.scrollTo(0, 0)
-          setDisplayLocation(pendingLocationRef.current)
-          setTransitionActive(false)
-        },
-      })
+    const dimmer = dimmerRef.current
+    const curtain = curtainRef.current
+    // This effect runs after React commits the active overlay, so both refs
+    // are guaranteed in normal operation. Recover instead of trapping input
+    // if the overlay is ever removed unexpectedly.
+    if (!dimmer || !curtain) {
+      window.scrollTo(0, 0)
+      setDisplayLocation(pendingLocationRef.current)
+      setTransitionActive(false)
+      return
+    }
 
-      if (reducedMotion) {
-        // Reduced motion: quick opacity transition only.
-        timeline
-          .to(dimmer, { opacity: 0.14, duration: 0.2, ease: 'power2.out' })
-          .to(curtain, { opacity: 1, duration: 0.2, ease: 'power2.out' })
-        return
-      }
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    const timeline = gsap.timeline({
+      onComplete: () => {
+        // Swap pages after the curtain reaches the top.
+        window.scrollTo(0, 0)
+        setDisplayLocation(pendingLocationRef.current)
+        setTransitionActive(false)
+      },
+    })
 
+    if (reducedMotion) {
+      // Reduced motion: quick opacity transition only.
+      timeline
+        .to(dimmer, { opacity: 0.14, duration: 0.2, ease: 'power2.out' })
+        .to(curtain, { opacity: 1, duration: 0.2, ease: 'power2.out' })
+    } else {
       timeline
         // Step 1: dark overlay
         .to(dimmer, { opacity: 0.2, duration: 0.2, ease: 'power2.out' })
@@ -71,14 +79,13 @@ export function RouteTransition({ children }: RouteTransitionProps) {
           // Step 2: new page slides in
           { y: 0, duration: 1.2, ease: 'power4.inOut' },
         )
-    })
+    }
 
     return () => {
-      cancelAnimationFrame(frame)
-      timeline?.kill()
-      gsap.killTweensOf([dimmerRef.current, curtainRef.current])
+      timeline.kill()
+      gsap.killTweensOf([dimmer, curtain])
     }
-  }, [displayLocation, location])
+  }, [transitionActive])
 
   return (
     <>

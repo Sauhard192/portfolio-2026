@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
 
 import type { HomeView, MediaGalleryView } from '../../types/home'
@@ -25,10 +25,33 @@ export function SiteHeader({
 }: SiteHeaderProps) {
   const location = useLocation()
   const [menuOpen, setMenuOpen] = useState(false)
+  const [menuAnimating, setMenuAnimating] = useState(false)
   const menuButtonRef = useRef<HTMLButtonElement>(null)
   const menuRef = useRef<HTMLElement>(null)
+  const menuTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const showViewSwitcher = view !== undefined && onViewChange !== undefined
   const activePosition = view === viewOptions[1].value ? 'second' : 'first'
+
+  const transitionMenu = useCallback((open: boolean) => {
+    if (menuTimerRef.current) window.clearTimeout(menuTimerRef.current)
+    setMenuAnimating(true)
+    setMenuOpen(open)
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    menuTimerRef.current = window.setTimeout(
+      () => {
+        setMenuAnimating(false)
+        menuTimerRef.current = null
+        if (!open) requestAnimationFrame(() => menuButtonRef.current?.focus())
+      },
+      reducedMotion ? 20 : open ? 520 : 300,
+    )
+  }, [])
+
+  useEffect(() => {
+    return () => {
+      if (menuTimerRef.current) window.clearTimeout(menuTimerRef.current)
+    }
+  }, [])
 
   useEffect(() => {
     if (!menuOpen) return
@@ -41,7 +64,7 @@ export function SiteHeader({
 
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
-        setMenuOpen(false)
+        transitionMenu(false)
         return
       }
 
@@ -64,15 +87,13 @@ export function SiteHeader({
     return () => {
       document.body.style.overflow = previousOverflow
       window.removeEventListener('keydown', handleKeyDown)
-      menuButtonRef.current?.focus()
     }
-  }, [menuOpen])
+  }, [menuOpen, transitionMenu])
 
-  const closeMenu = () => setMenuOpen(false)
+  const closeMenu = () => transitionMenu(false)
   const handleNavClick = (path: string) => (event: React.MouseEvent<HTMLAnchorElement>) => {
     if (location.pathname === path) {
       event.preventDefault()
-      return
     }
 
     closeMenu()
@@ -122,9 +143,10 @@ export function SiteHeader({
         aria-expanded={menuOpen}
         aria-controls="primary-navigation"
         aria-label={menuOpen ? 'Close menu' : 'Open menu'}
+        disabled={menuAnimating}
         data-cursor="interactive"
         data-page-header
-        onClick={() => setMenuOpen((isOpen) => !isOpen)}
+        onClick={() => transitionMenu(!menuOpen)}
       >
         <svg className="menu-toggle__icon" width="20" height="20" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
           <rect className="menu-toggle__bar menu-toggle__bar--top" x="2" y="10" width="20" height="4" />
@@ -138,6 +160,7 @@ export function SiteHeader({
         className="home-nav"
         aria-label="Primary navigation"
         data-open={menuOpen}
+        data-animating={menuAnimating}
       >
         <NavLink
           to="/"

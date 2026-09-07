@@ -2,6 +2,7 @@ import { useEffect, useRef, type RefObject } from 'react'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { footerProgress, NEXT_PROJECT_SCROLL_SCREENS } from '../components/case-study/caseStudyNavigation'
+import { CASE_CONTENT_READY_EVENT } from '../components/case-study/revealOwnership'
 import { CASE_REVEAL_DELAY, CASE_REVEAL_DURATION, CASE_IMAGE_STAGGER, CASE_IMAGE_START_SCALE, CASE_SIDE_REVEAL_START } from '../components/case-study/revealTiming'
 
 gsap.registerPlugin(ScrollTrigger)
@@ -41,6 +42,8 @@ export function useCaseStudyScroll(
     media.add('(prefers-reduced-motion: no-preference)', () => {
       let navigating = false
       let lastProgress = 0
+      let revealsInitialized = false
+      const caseReveals: gsap.core.Timeline[] = []
       const pin = ScrollTrigger.create({
         id: 'next-project', trigger: footer, start: 'top top',
         end: () => `+=${footer.offsetHeight * NEXT_PROJECT_SCROLL_SCREENS}`,
@@ -66,35 +69,43 @@ export function useCaseStudyScroll(
         },
       })
 
-      page.querySelectorAll<HTMLElement>('[data-case-reveal]').forEach((element) => {
-        if (element.getBoundingClientRect().top < window.innerHeight * 0.9) return
-        const isImage = element.classList.contains('case-study__image')
-        // Only stagger images sharing a row; stacked mobile images trigger individually.
-        const rowIndex = isImage && element.parentElement
-          ? Array.from(element.parentElement.children).filter(sibling =>
-            sibling instanceof HTMLElement && sibling.offsetTop === element.offsetTop,
-          ).indexOf(element)
-          : 0
-        const sideways = isImage && element.parentElement?.dataset.columns === '1'
-        const reveal = gsap.timeline({
-          delay: CASE_REVEAL_DELAY + Math.max(0, rowIndex) * CASE_IMAGE_STAGGER,
-          defaults: { duration: CASE_REVEAL_DURATION, ease: 'power2.out' },
-          scrollTrigger: { trigger: element, start: 'top 90%', once: true },
+      const setupCaseReveals = () => {
+        if (revealsInitialized) return
+        revealsInitialized = true
+        page.querySelectorAll<HTMLElement>('[data-case-reveal]').forEach((element) => {
+          const isImage = element.classList.contains('case-study__image')
+          // Initial images belong to the page entrance; only below-fold images get ScrollTriggers.
+          if (isImage ? element.dataset.caseRevealOwner === 'entrance' : element.getBoundingClientRect().top < window.innerHeight * 0.9) return
+          // Only stagger images sharing a row; stacked mobile images trigger individually.
+          const rowIndex = isImage && element.parentElement
+            ? Array.from(element.parentElement.children).filter(sibling =>
+              sibling instanceof HTMLElement && sibling.offsetTop === element.offsetTop,
+            ).indexOf(element)
+            : 0
+          const sideways = isImage && element.parentElement?.dataset.columns === '1'
+          const reveal = gsap.timeline({
+            delay: CASE_REVEAL_DELAY + Math.max(0, rowIndex) * CASE_IMAGE_STAGGER,
+            defaults: { duration: CASE_REVEAL_DURATION, ease: 'power2.out' },
+            scrollTrigger: { trigger: element, start: 'top 90%', once: true },
+          })
+          reveal.fromTo(element,
+            isImage ? { clipPath: sideways ? CASE_SIDE_REVEAL_START : 'inset(100% 0% 0% 0%)' } : { opacity: 0, y: 20 },
+            {
+              ...(isImage ? { clipPath: 'inset(0% 0% 0% 0%)' } : { opacity: 1, y: 0 }),
+              clearProps: isImage ? 'clipPath' : 'opacity,transform',
+            },
+          )
+          const image = isImage ? element.querySelector('.progressive-image') : null
+          if (image) reveal.fromTo(image, { scale: CASE_IMAGE_START_SCALE }, { scale: 1, clearProps: 'transform' }, 0)
+          caseReveals.push(reveal)
         })
-        reveal.fromTo(element,
-          isImage ? { clipPath: sideways ? CASE_SIDE_REVEAL_START : 'inset(100% 0% 0% 0%)' } : { opacity: 0, y: 20 },
-          {
-            ...(isImage ? { clipPath: 'inset(0% 0% 0% 0%)' } : { opacity: 1, y: 0 }),
-            clearProps: isImage ? 'clipPath' : 'opacity,transform',
-          },
-        )
-        const image = isImage ? element.querySelector('.progressive-image') : null
-        if (image) reveal.fromTo(image, { scale: CASE_IMAGE_START_SCALE }, { scale: 1, clearProps: 'transform' }, 0)
-      })
+      }
+      page.addEventListener(CASE_CONTENT_READY_EVENT, setupCaseReveals)
+      if (page.dataset.caseContentReady === 'true') setupCaseReveals()
 
       const heading = footer.querySelector('.next-project-heading')
       const preview = footer.querySelector('.next-project__image')
-      const details = footer.querySelectorAll('.next-project__title, .next-project__label')
+      const details = footer.querySelectorAll('.next-project__eyebrow, .next-project__title')
       const footerEntrance = gsap.timeline({
         scrollTrigger: { trigger: footer, start: 'top bottom', once: true },
         defaults: { ease: 'power2.out' },
@@ -109,6 +120,11 @@ export function useCaseStudyScroll(
       footerEntrance.fromTo(details, { opacity: 0 },
         { opacity: 1, duration: 0.55, stagger: 0.1, clearProps: 'opacity' })
       return () => {
+        page.removeEventListener(CASE_CONTENT_READY_EVENT, setupCaseReveals)
+        caseReveals.forEach((reveal) => {
+          reveal.scrollTrigger?.kill()
+          reveal.kill()
+        })
         cancelAnimationFrame(navigationFrame)
         fill.style.transform = 'scaleY(0)'
         progress.dataset.active = 'false'

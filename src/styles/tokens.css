@@ -112,9 +112,9 @@
   --type-case-note-size: var(--font-size-heading-2);
   --type-case-note-line-height: var(--line-height-heading);
 
-  --type-case-next-size: clamp(3rem, 4.1667vw, 5rem);
+  --type-case-next-size: var(--font-size-heading);
   --case-intro-offset: clamp(10rem, 12.5vw, 15rem);
-  --case-section-gap: clamp(2rem, 3.333vw, 4rem);
+  --case-section-gap: var(--space-12);
   --case-image-gap: var(--space-5);
   --case-footer-background: var(--color-foreground);
   --case-footer-foreground: var(--color-surface);
@@ -165,6 +165,7 @@
 
   --page-gutter: var(--layout-gutter);
   --focus-outline-width: 2px;
+  
 }
 
 @media (max-width: 1199px) {
@@ -214,6 +215,8 @@
     --gallery-row-gap: 2rem;
     --contact-label-gap: var(--space-4);
     --contact-links-offset: var(--space-6);
+
+    --case-section-gap: var(--space-10);
   }
 }
 
@@ -256,5 +259,8 @@
     --contact-links-offset: var(--space-4);
     --contact-link-gap: 0;
     --contact-link-icon-size: 1.125rem;
+   
+   
+    --case-image-gap: var(--space-10)
   }
 }

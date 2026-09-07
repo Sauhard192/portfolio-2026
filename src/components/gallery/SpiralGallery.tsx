@@ -29,6 +29,7 @@ interface SpiralGalleryProps {
 interface SpiralMotion extends ScrollMotion {
   position: number
   hovering: boolean
+  hoveredSlot: number | null
   pageVisible: boolean
 }
 
@@ -44,7 +45,9 @@ const RADIUS_RETURN = 20 // Higher = quicker settling; no waiting timer.
 const CAMERA_DISTANCE = 8
 const CAMERA_FOV = 42
 const CAMERA_PULLBACK = 0.06
-const FIT_HOVER_ALLOWANCE = 1.05 // Reserve room for up to 5% hover enlargement.
+const HOVER_SCALE = 1.05
+const HOVER_SCALE_RESPONSE = 14
+const FIT_HOVER_ALLOWANCE = HOVER_SCALE // Reserve room for hover enlargement.
 
 // Layout controls (world units, not pixels).
 const HELIX_TURNS = 2
@@ -73,6 +76,7 @@ export default function SpiralGallery({ collection, items }: SpiralGalleryProps)
     lastInputTime: -Infinity,
     lastInputDirection: 0,
     hovering: false,
+    hoveredSlot: null,
     pageVisible: !document.hidden,
   })
 
@@ -164,6 +168,7 @@ export default function SpiralGallery({ collection, items }: SpiralGalleryProps)
         }}
         onPointerMissed={() => {
           motionRef.current.hovering = false
+          motionRef.current.hoveredSlot = null
           dispatchCursorTarget(false)
         }}
       >
@@ -232,6 +237,7 @@ function SpiralScene({ collection, items, motion, onReady, onErrors }: SpiralSce
   )
   const meshRefs = useRef<Array<THREE.Mesh | null>>([])
   const materialRefs = useRef<Array<THREE.MeshBasicMaterial | null>>([])
+  const hoverScales = useRef<number[]>([])
   const radiusScale = useRef(1)
   const cameraZ = useRef(CAMERA_DISTANCE)
 
@@ -287,9 +293,22 @@ function SpiralScene({ collection, items, motion, onReady, onErrors }: SpiralSce
       const { angle: theta, y } = getHelixPose(phase, HELIX_TURNS, verticalSpan)
       const z = Math.cos(theta) * radius
       const depth = (z + radius) / (radius * 2)
+      const targetHoverScale = !reducedMotion && state.hoveredSlot === index ? HOVER_SCALE : 1
+      const hoverScale = THREE.MathUtils.damp(
+        hoverScales.current[index] ?? 1,
+        targetHoverScale,
+        HOVER_SCALE_RESPONSE,
+        safeDelta,
+      )
+      hoverScales.current[index] = hoverScale
 
-      mesh.position.set(0, y, 0)
+      const cardScale = fitScale * hoverScale
+      // Offset the scaled geometry so its center remains attached to the cylinder.
+      const centerOffset = radius * (fitScale - cardScale)
+
+      mesh.position.set(Math.sin(theta) * centerOffset, y, Math.cos(theta) * centerOffset)
       mesh.rotation.y = theta
+      mesh.scale.setScalar(cardScale)
       mesh.renderOrder = Math.round(depth * 100)
       material.color.setScalar(0.48 + depth * 0.52)
       const image = images[itemIndex]
@@ -315,7 +334,10 @@ function SpiralScene({ collection, items, motion, onReady, onErrors }: SpiralSce
 
   const handlePointerOver = (event: ThreeEvent<PointerEvent>, slotIndex: number) => {
     event.stopPropagation()
-    if (motion.current) motion.current.hovering = true
+    if (motion.current) {
+      motion.current.hovering = true
+      motion.current.hoveredSlot = slotIndex
+    }
     document.body.style.cursor = 'pointer'
     const { itemIndex } = getSpiralSlot(slotIndex, slotCount, motion.current.position, items.length)
     const item = items[itemIndex]
@@ -324,7 +346,10 @@ function SpiralScene({ collection, items, motion, onReady, onErrors }: SpiralSce
 
   const handlePointerOut = (event: ThreeEvent<PointerEvent>) => {
     event.stopPropagation()
-    if (motion.current) motion.current.hovering = false
+    if (motion.current) {
+      motion.current.hovering = false
+      motion.current.hoveredSlot = null
+    }
     document.body.style.removeProperty('cursor')
     dispatchCursorTarget(false)
   }

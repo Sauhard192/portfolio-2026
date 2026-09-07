@@ -103,7 +103,7 @@ function LensScene({ galleryRef, source, onReady, onFailure }: Props & { onReady
     if (!gallery) return
     const collect = () => {
       if (source === 'case-study') caseSource.current = new CaseStudyLensSource(gallery)
-      targets.current = Array.from(gallery.querySelectorAll<HTMLElement>('.project-card img, .project-list-item, .project-list-preview img'))
+      targets.current = Array.from(gallery.querySelectorAll<HTMLElement>('.project-card img, .project-list-item .scramble-text__visual, .project-list-preview img'))
       lastSignature.current = ''
     }
     collect()

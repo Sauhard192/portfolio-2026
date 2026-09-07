@@ -7,6 +7,7 @@ import Lenis from 'lenis'
 import type { HomeView } from '../../types/home'
 import { gridCycleLength } from './gridCycle'
 import { GalleryEdgeLens } from '../gallery/GalleryEdgeLens'
+import { ScrambleText } from '../ui/ScrambleText'
 
 export interface InfiniteGalleryItem {
   slug: string
@@ -41,6 +42,7 @@ export function InfiniteProjectGallery({
   const zoomLayerRef = useRef<HTMLDivElement>(null)
   const galleryTrackRef = useRef<HTMLDivElement>(null)
   const [hoveredProject, setHoveredProject] = useState<InfiniteGalleryItem | null>(null)
+  const [listScrambleDisabled, setListScrambleDisabled] = useState(false)
   const [centeredProject, setCenteredProject] = useState<InfiniteGalleryItem | null>(
     () => projects[0] ?? null,
   )
@@ -135,6 +137,7 @@ export function InfiniteProjectGallery({
     let scrollOrigin = 0
     let zoomPhase: 'idle' | 'out' | 'hold' | 'return' = 'idle'
     let scrolling = false
+    let scrambleDisabled = false
 
     const recoverZoom = () => {
       // Finish the full zoom-out before allowing recovery.
@@ -220,9 +223,13 @@ export function InfiniteProjectGallery({
       if (positionMemory && cycleHeight > 0 && !document.documentElement.dataset.routeScrollLocked) positionMemory.gridPosition = getLoopPosition(scrollState.animatedScroll) / cycleHeight
       updateTrackPosition(scrollState.animatedScroll)
 
-      if (reducedMotion || window.innerWidth <= 900) return
-
       scrolling = scrollState.isScrolling !== false
+      if (view === 'list' && scrolling !== scrambleDisabled) {
+        scrambleDisabled = scrolling
+        setListScrambleDisabled(scrolling)
+      }
+
+      if (reducedMotion || window.innerWidth <= 900) return
       if (scrolling && (zoomPhase === 'idle' || zoomPhase === 'return')) {
         startZoom()
       }
@@ -250,6 +257,7 @@ export function InfiniteProjectGallery({
       gsap.killTweensOf(zoomLayer)
       galleryTrack.style.removeProperty('transform')
       window.history.scrollRestoration = previousScrollRestoration
+      setListScrambleDisabled(false)
       window.scrollTo(0, 0)
     }
   }, [view, projects, gridLayout.count, positionMemory])
@@ -313,7 +321,7 @@ export function InfiniteProjectGallery({
                       onBlur={() => setHoveredProject(null)}
                       key={`${copyIndex}-${project.slug}`}
                     >
-                      {project.title}
+                      <ScrambleText disabled={listScrambleDisabled}>{project.title}</ScrambleText>
                     </Link>
                   ),
                 )}

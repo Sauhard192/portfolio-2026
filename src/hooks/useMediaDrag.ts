@@ -68,6 +68,9 @@ export function useMediaDrag(track: RefObject<HTMLDivElement | null>, key: strin
       reset()
       gesture.current = { id: event.pointerId, x: event.clientX, y: event.clientY, lastX: event.clientX,
         time: performance.now(), velocity: 0, dx: 0, horizontal: false, target: event.currentTarget }
+      // Capture immediately, before the browser can cancel a horizontal swipe.
+      // Vertical intent still releases capture in onPointerMove.
+      event.currentTarget.setPointerCapture(event.pointerId)
     },
     onPointerMove: (event: PointerEvent<HTMLElement>) => {
       const drag = gesture.current
@@ -77,7 +80,6 @@ export function useMediaDrag(track: RefObject<HTMLDivElement | null>, key: strin
         if (Math.abs(dy) > 8 && Math.abs(dy) > Math.abs(dx)) { reset(); return }
         if (Math.abs(dx) < 8 || Math.abs(dx) < Math.abs(dy)) return
         drag.horizontal = true
-        drag.target.setPointerCapture(drag.id)
         track.current.style.willChange = 'transform'
         track.current.dataset.dragging = 'true'
       }

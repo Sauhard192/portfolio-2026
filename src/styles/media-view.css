@@ -44,6 +44,11 @@
   inset: 0;
 }
 .media-view__item[inert] { pointer-events: none; }
+.media-view__stage,
+.media-view__track,
+.media-view__image-box {
+  touch-action: pan-y pinch-zoom;
+}
 .media-view__track { user-select: none; }
 .media-view__image-box { cursor: grab; }
 .media-view:has([data-dragging='true']) { cursor: grabbing; }

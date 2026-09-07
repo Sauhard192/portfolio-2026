@@ -1,5 +1,5 @@
 // One viewport of extra scrolling after the footer reaches the top.
-export const NEXT_PROJECT_SCROLL_SCREENS = 1
+export const NEXT_PROJECT_SCROLL_SCREENS = 2
 
 export function nextProjectIndex(index: number, count: number) {
   return count > 1 && index >= 0 && index < count ? (index + 1) % count : -1
