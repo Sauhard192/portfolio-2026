@@ -219,6 +219,7 @@
   .next-project__eyebrow { display: none; }
   .next-project__title { text-align: center; }
 }
+
 @media (max-width: 640px) {
   .case-study { padding-bottom: var(--space-10); }
   .case-study__intro-bottom { align-items: flex-start; flex-direction: column; margin-top: var(--space-5); }
@@ -228,6 +229,7 @@
 
   .case-study__intro h1:focus { outline: none; }
     .case-study__intro-bottom {
+      gap: var(--space-4);
       margin-top: var(--space-4);
     }
 
