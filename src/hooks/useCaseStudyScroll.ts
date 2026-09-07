@@ -72,27 +72,61 @@ export function useCaseStudyScroll(
       const setupCaseReveals = () => {
         if (revealsInitialized) return
         revealsInitialized = true
-        page.querySelectorAll<HTMLElement>('[data-case-reveal]').forEach((element) => {
+        const metadata = Array.from(page.querySelectorAll<HTMLElement>('[data-case-meta]'))
+        const pendingElements = Array.from(page.querySelectorAll<HTMLElement>('[data-case-reveal]'))
+          .filter(element => element.dataset.caseRevealOwner !== 'entrance')
+        const alreadyReachedDelays = new Map<HTMLElement, number>()
+        let queuedDelay = CASE_REVEAL_DELAY
+        let queuedMetadata = false
+
+        pendingElements
+          .filter(element => element.getBoundingClientRect().top < window.innerHeight * 0.9)
+          .forEach((element) => {
+            const isMetadata = element.hasAttribute('data-case-meta')
+            if (!isMetadata && queuedMetadata) {
+              // Let the final metadata item finish before queued sections begin.
+              queuedDelay += 0.5
+              queuedMetadata = false
+            }
+            alreadyReachedDelays.set(element, queuedDelay)
+            queuedDelay += isMetadata ? 0.12 : CASE_IMAGE_STAGGER
+            queuedMetadata ||= isMetadata
+          })
+
+        pendingElements.forEach((element) => {
           const isImage = element.classList.contains('case-study__image')
-          // Initial images belong to the page entrance; only below-fold images get ScrollTriggers.
-          if (isImage ? element.dataset.caseRevealOwner === 'entrance' : element.getBoundingClientRect().top < window.innerHeight * 0.9) return
+            || element.classList.contains('case-study__hero')
           // Only stagger images sharing a row; stacked mobile images trigger individually.
-          const rowIndex = isImage && element.parentElement
+          const rowIndex = element.classList.contains('case-study__image') && element.parentElement
             ? Array.from(element.parentElement.children).filter(sibling =>
               sibling instanceof HTMLElement && sibling.offsetTop === element.offsetTop,
             ).indexOf(element)
             : 0
-          const sideways = isImage && element.parentElement?.dataset.columns === '1'
+          const metaIndex = element.hasAttribute('data-case-meta')
+            ? metadata.indexOf(element)
+            : 0
+          const sideways = element.classList.contains('case-study__image')
+            && element.parentElement?.dataset.columns === '1'
+          const queuedRevealDelay = alreadyReachedDelays.get(element)
+          const alreadyReached = queuedRevealDelay !== undefined
           const reveal = gsap.timeline({
-            delay: CASE_REVEAL_DELAY + Math.max(0, rowIndex) * CASE_IMAGE_STAGGER,
+            delay: queuedRevealDelay ?? (
+              CASE_REVEAL_DELAY
+                + Math.max(0, rowIndex) * CASE_IMAGE_STAGGER
+                + Math.max(0, metaIndex) * 0.12
+            ),
             defaults: { duration: CASE_REVEAL_DURATION, ease: 'power2.out' },
-            scrollTrigger: { trigger: element, start: 'top 90%', once: true },
+            scrollTrigger: alreadyReached
+              ? undefined
+              : { trigger: element, start: 'top 90%', once: true },
           })
           reveal.fromTo(element,
-            isImage ? { clipPath: sideways ? CASE_SIDE_REVEAL_START : 'inset(100% 0% 0% 0%)' } : { opacity: 0, y: 20 },
+            isImage
+              ? { opacity: 0, clipPath: sideways ? CASE_SIDE_REVEAL_START : 'inset(100% 0% 0% 0%)' }
+              : { opacity: 0, y: 20 },
             {
-              ...(isImage ? { clipPath: 'inset(0% 0% 0% 0%)' } : { opacity: 1, y: 0 }),
-              clearProps: isImage ? 'clipPath' : 'opacity,transform',
+              ...(isImage ? { opacity: 1, clipPath: 'inset(0% 0% 0% 0%)' } : { opacity: 1, y: 0 }),
+              clearProps: isImage ? 'opacity,clipPath' : 'opacity,transform',
             },
           )
           const image = isImage ? element.querySelector('.progressive-image') : null

@@ -42,16 +42,16 @@ function CaseStudyContent({ project, next }: { project?: CaseStudy; next?: CaseS
           {project.siteUrl?.trim() && <ContactLinkButton href={project.siteUrl} newTab>VIEW SITE</ContactLinkButton>}
         </div>
       </header>
-      <figure className="case-study__hero" data-enter-image
+      <figure className="case-study__hero" data-enter-image data-case-reveal
         style={project.heroAspectRatio ? { '--case-image-ratio': project.heroAspectRatio } as CSSProperties : undefined}>
         <CaseImage image={project.hero} priority />
       </figure>
-      <div className="case-study__metadata" data-case-reveal>
+      <div className="case-study__metadata">
         <dl>
-          <div><dt>{project.labels?.projectType ?? 'PROJECT TYPE'}</dt><dd>{project.projectType}</dd></div>
-          <div><dt>{project.labels?.date ?? 'YEAR'}</dt><dd>{project.date}</dd></div>
+          <div data-case-reveal data-case-meta><dt>{project.labels?.projectType ?? 'PROJECT TYPE'}</dt><dd>{project.projectType}</dd></div>
+          <div data-case-reveal data-case-meta><dt>{project.labels?.date ?? 'YEAR'}</dt><dd>{project.date}</dd></div>
         </dl>
-        <div className="case-study__description">
+        <div className="case-study__description" data-case-reveal data-case-meta>
           <h2>{project.labels?.description ?? 'DESCRIPTION'}</h2>
           <ProjectText body={project.description} />
         </div>

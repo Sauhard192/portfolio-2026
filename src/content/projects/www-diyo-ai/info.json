@@ -1,10 +1,50 @@
 {
   "slug": "www-diyo-ai",
   "title": "WWW.DIYO.AI",
-  "roles": [],
-  "projectType": "AI website",
-  "date": "2026",
-  "description": "Case study coming soon.",
-  "hero": "@placeholder",
-  "sections": []
+  "roles": [
+    "Website Design",
+    "Visual Identity",
+    "UI Design",
+    "Marketing"
+    
+  ],
+  "projectType": "Website Design",
+  "date": "2022",
+  "labels": {
+    "projectType": "PROJECT TYPE",
+    "date": "YEAR",
+    "description": "DESCRIPTION"
+  },
+  "description": "Website design for DIYO.AI, a Nepal-based company developing speech and language AI for local contexts. The project focused on translating its technical work, products, achievements, and partnerships into a clear and accessible website, making the company’s work easier to understand and explore.",
+  "siteUrl": "https://www.diyo.ai",
+  "hero": "cover.png",
+  "thumbnail": "thumbnail.png",
+  "sections": [
+    {
+      "images": [
+        "img1.png"
+      ]
+    },
+    {
+      "title": "Designing Beyond the Homepage",
+      "body": "I designed and organized the website’s supporting content, including individual bot pages, testimonials, awards, and partnerships. The focus was on giving each type of content a clear visual structure while keeping the overall experience consistent, easy to scan, and aligned with DIYO.AI’s identity."
+    },
+    {
+      "images":[
+        "img2.png",
+        "img3.png"
+      ]
+    },
+    {
+      "images": [
+        "img4.png"
+      ]
+    },
+
+    {
+      "images": [
+        "img5.png"
+      ]
+    }
+  ]
 }
