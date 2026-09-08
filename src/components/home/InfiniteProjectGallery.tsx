@@ -298,8 +298,8 @@ export function InfiniteProjectGallery({
                         />
                         {showTouchMetadata && (
                           <figcaption className="project-card__touch-meta" data-enter-meta>
-                            <span>{project.title}</span>
-                            <span>{project.year}</span>
+                            <span className="project-card__touch-title">{project.title}</span>
+                            <span className="project-card__touch-details">{project.year}</span>
                           </figcaption>
                         )}
                       </figure>

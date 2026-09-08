@@ -85,7 +85,12 @@
 
   --type-tooltip-meta-size: var(--font-size-label);
   --type-tooltip-meta-line-height: 1rem;
-  --type-card-meta-size: 0.75rem;
+  
+  --type-card-title-size: var(--font-size-body);
+  --type-card-title-weight: var(--font-weight-semibold);
+  --type-card-title-line-height: 1.125rem;
+  --type-card-meta-size: var(--font-size-caption);
+  --type-card-meta-weight: var(--font-weight-regular);
   --type-card-meta-line-height: 1rem;
 
   --type-contact-label-size: var(--font-size-label);
@@ -227,7 +232,7 @@
 @media (max-width: 640px) {
   :root {
     /* Mobile typography */
-    --font-size-caption: 0.6875rem;
+    --font-size-caption: 0.8rem;
     --font-size-label: 0.8125rem;
     --font-size-body: 1rem;
     --font-size-heading: clamp(1.75rem, 1.4rem + 1.5vw, 2rem);
@@ -244,8 +249,12 @@
     --type-logo-size: 2rem;
     --type-logo-letter-spacing: -1.6px;
     --type-project-title-size: clamp(2.25rem, 11vw, 3.25rem);
-    --type-card-meta-size: 0.6875rem;
+
+    --type-card-title-size: var(--font-size-body);
+    --type-card-title-line-height: 0.875rem;
+    --type-card-meta-size: var(--font-size-caption);
     --type-card-meta-line-height: 0.875rem;
+
     --type-contact-heading-size: var(--font-size-display);
     --type-contact-heading-line-height: var(--line-height-display-display);
     --type-contact-link-size: 1.5rem;
@@ -258,7 +267,7 @@
     --gallery-inline-margin: clamp(1rem, 2rem, 12vw);
     --gallery-column-gap: 1rem; /* Fixed mobile column gap. */
     --gallery-top-space: 9rem;
-    --gallery-row-gap: 2rem;
+    --gallery-row-gap: 3rem;
     --contact-label-gap: var(--space-4);
     --contact-links-offset: var(--space-4);
     --contact-link-gap: 0;

@@ -1,10 +1,62 @@
 {
   "slug": "diyo-ai",
-  "title": "DIYO AI",
-  "roles": [],
-  "projectType": "AI product",
-  "date": "2026",
-  "description": "Case study coming soon.",
-  "hero": "@placeholder",
-  "sections": []
+  "title": "DIYO.AI",
+  "roles": [
+    "Logo Design",
+    "Visual Identity",
+    "Branding",
+    "Graphic Design"
+  ],
+  "projectType": "Visual Identity",
+  "date": "2021",
+  "description": "Visual identity for DIYO.AI, a Nepal-based company working on speech and language AI for low-resource local languages. The identity was designed to reflect the company’s focus on making AI more accessible and relevant to local contexts, while giving the brand a clear and consistent presence across platforms. The project included logo design, a comprehensive brand guidelines document, social media assets, and print collateral.",
+  "hero": "cover.png",
+
+  "sections": [
+     {
+      "images": [
+        "img1.png"
+      ]
+    },
+
+    {
+      "title": "Logo Construction & Lockups",
+      "body": "The DIYO.AI logo combines a forward-moving symbol with a clean wordmark to reflect the company’s focus on accessible, locally relevant AI. The icon suggests connection, flow, and conversation, aligning with DIYO.AI’s work in speech and language technologies, while the blue palette keeps the identity modern, trustworthy, and technology-driven."
+    },
+
+    {
+      "images": [
+        "img2.png",
+        "img3.png"
+      ]
+    },
+
+     {
+      "images": [
+        "img4.png"
+      ]
+    },
+
+     {
+      "title": "Brand Collaterals",
+      "body": "I extended the visual identity across both digital and print applications, creating a flexible system for social media, announcements, testimonials, presentations, and printed materials. Consistent typography, color, graphic patterns, and layout rules helped keep every touchpoint recognizable while allowing the content to adapt to different formats."
+    },
+
+    {
+      "images": [
+        "img5.png"
+      ]
+    },
+
+    {
+      "images": [
+        "img6.png",
+        "img7.png",
+        "img8.png"
+      ]
+    }
+
+
+    
+  ]
 }
