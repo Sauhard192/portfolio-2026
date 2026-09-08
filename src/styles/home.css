@@ -259,6 +259,22 @@
   transition: color 220ms ease, transform 420ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
+.project-list-item .scramble-text {
+  max-width: 100%;
+}
+
+.project-list-item .scramble-text__measure,
+.project-list-item .scramble-text__visual {
+  display: -webkit-box;
+  max-block-size: 2lh;
+  overflow: hidden;
+  white-space: normal;
+  overflow-wrap: normal;
+  text-align: left;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
 .project-list-item:hover,
 .project-list-item:focus-visible {
   color: var(--color-foreground);
