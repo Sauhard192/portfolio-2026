@@ -1,10 +1,48 @@
 {
   "slug": "equicom",
-  "title": "Equicom",
-  "roles": [],
-  "projectType": "Brand Guidelines",
+  "title": "Equicom Brand Guidelines",
+  "roles": [
+
+    "Graphic Design",
+    "Typography",
+    "Print Design",
+    "Branding"
+
+  ],
+  "projectType": "Graphic Design",
   "date": "2022",
-  "description": "Case study coming soon.",
-  "hero": "@placeholder",
-  "sections": []
+  "description": "Brand guidelines for Equicom Group, a diversified Filipino conglomerate with businesses spanning healthcare, banking and financial services, information technology, and related services. The project focused on building a clear and consistent visual system for the group, defining standards for logo usage, typography, color, layout, and brand applications to create a more unified identity across its different communications and touchpoints.",
+  "hero": "cover.png",
+  "thumbnail": "thumbnail.png",
+
+  "sections": [
+    {
+      "images": [
+        "img1.png"
+      ]
+    },
+    {
+      "images": [
+        "img2.png"
+      ]
+    },
+    {
+      "images": [
+        "img3.png",
+        "img4.png"
+      ]
+    },
+    {
+      "images": [
+        "img5.png"
+      ]
+    },
+    {
+      "images": [
+        "img6.png",
+        "img7.png"
+      ]
+    }
+
+  ]
 }
