@@ -119,6 +119,7 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   width: 100%;
+  height: 48px;
 }
 
 .view-switcher__active {
@@ -126,7 +127,7 @@
   top: 0;
   left: 0;
   width: 50%;
-  height: 48px;
+  height: 100%;
   border-radius: 100px;
   background: rgba(0, 0, 0, 0.1);
   transform: translateX(0);
@@ -139,8 +140,9 @@
 
 .view-switcher button {
   z-index: 1;
+  height: 48px;
   min-width: 0;
-  padding: 12px 4px;
+  padding: 0 4px;
   border: 0;
   border-radius: 100px;
   background: transparent;
