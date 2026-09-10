@@ -1,0 +1,38 @@
+{
+  "slug": "creator-honors",
+  "title": "Creator Honors",
+  "roles": ["Visual Identity", "Graphic Design", "Logo Design", "Branding"],
+  "projectType": "Visual Identity",
+  "date": "2024",
+  "description": "Visual identity design for Creator Honors, an Uptrendly event celebrating Nepal’s creator community. I developed a bold and energetic visual language for the event, extending it across social media, campaign graphics, stage visuals, and other event touchpoints to create a cohesive and recognizable identity.",
+  "hero": "cover.png",
+
+
+  "sections": [
+    {
+      "images":[
+        "img1.png"
+      ]
+    },
+    
+    {
+      "images":[
+        "img2.png"
+      ]
+    },
+
+    {
+      "images": [
+         "img3.png",
+         "img4.png",
+         "img5.png"
+      ]
+    },
+
+    {
+      "images": [
+         "img6.png"
+      ]
+    }
+  ]
+}
