@@ -10,6 +10,16 @@ export interface OptimizedProjectImage {
 export interface ProjectImage extends OptimizedProjectImage {
   alt: string
   position?: string // CSS object-position, e.g. '50% 30%'.
+  caption?: string
+}
+
+export interface ProjectVideo {
+  src: string
+  width: number
+  height: number
+  alt: string
+  poster?: ProjectImage
+  caption?: string
 }
 
 export type TextRun = string | { text: string; href: string }
@@ -21,6 +31,7 @@ export type ProjectBody = string | Array<
 export type CaseStudySection =
   | { type: 'notes'; title: string; body: ProjectBody }
   | { type: 'images'; images: [ProjectImage] | [ProjectImage, ProjectImage] | [ProjectImage, ProjectImage, ProjectImage]; aspectRatio?: string }
+  | { type: 'video'; video: ProjectVideo }
 
 export interface CaseStudy {
   slug: string
@@ -38,10 +49,17 @@ export interface CaseStudy {
 }
 
 // Authoring contract for each project's info.json. Paths are relative to its folder.
-export type ProjectImageFile = string | { file: string; alt?: string; position?: string }
+export type ProjectImageFile = string | { file: string; alt?: string; position?: string; caption?: string }
+export interface ProjectVideoFile {
+  video: string
+  poster?: ProjectImageFile
+  alt?: string
+  caption?: string
+}
 export type ProjectSectionInfo =
   | { title: string; body: ProjectBody }
   | { images: [ProjectImageFile] | [ProjectImageFile, ProjectImageFile] | [ProjectImageFile, ProjectImageFile, ProjectImageFile]; aspectRatio?: string }
+  | ProjectVideoFile
 export interface ProjectInfo extends Partial<Omit<CaseStudy, 'slug' | 'title' | 'hero' | 'thumbnail' | 'sections'>> {
   title: string
   slug?: string

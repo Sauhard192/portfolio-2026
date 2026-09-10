@@ -4,7 +4,7 @@ import sharp from 'sharp'
 import { normalizePath, type Plugin } from 'vite'
 import type { MediaCollection, MediaItem } from '../src/types/media.ts'
 import { createAnimationOptimizer, createImageOptimizer } from './mediaImages.ts'
-import { readProjectCollection, PROJECT_ORDER_FILE, type ProjectFile } from './projectContent.ts'
+import { readProjectCollection, PROJECT_ORDER_FILE, type ProjectFile, type ProjectVideoFile } from './projectContent.ts'
 
 interface ContentEntry extends Omit<MediaItem, 'image'> {
   imagePath: string
@@ -138,6 +138,7 @@ export function mediaContent(): Plugin {
         }
         const imports: string[] = []
         const imageNames = new Map<string, string>()
+        const videoNames = new Map<string, string>()
         const imageCode = ({ path: imagePath, ...metadata }: ProjectFile) => {
           let name = imageNames.get(imagePath)
           if (!name) {
@@ -147,13 +148,25 @@ export function mediaContent(): Plugin {
           }
           return `{...${name},...${JSON.stringify(metadata)}}`
         }
+        const videoCode = ({ path: videoPath, poster, ...metadata }: ProjectVideoFile) => {
+          let name = videoNames.get(videoPath)
+          if (!name) {
+            name = `projectVideo${videoNames.size}`
+            videoNames.set(videoPath, name)
+            imports.push(`import ${name} from ${JSON.stringify(`${normalizePath(videoPath)}?url&no-inline`)};`)
+          }
+          const posterCode = poster ? `,poster:${imageCode(poster)}` : ''
+          return `{...${JSON.stringify(metadata)},src:${name}${posterCode}}`
+        }
         const items = entries.map(entry => {
           if (building) this.addWatchFile(entry.infoPath)
           const hero = imageCode(entry.hero)
           const thumbnail = entry.thumbnail ? `,thumbnail:${imageCode(entry.thumbnail)}` : ''
-          const sections = entry.sections.map(section => section.type === 'notes'
-            ? JSON.stringify(section)
-            : `{...${JSON.stringify({ type: section.type, aspectRatio: section.aspectRatio })},images:[${section.images.map(imageCode).join(',')}]}`)
+          const sections = entry.sections.map(section => {
+            if (section.type === 'notes') return JSON.stringify(section)
+            if (section.type === 'video') return `{type:'video',video:${videoCode(section.video)}}`
+            return `{...${JSON.stringify({ type: section.type, aspectRatio: section.aspectRatio })},images:[${section.images.map(imageCode).join(',')}]}`
+          })
           return `{...${JSON.stringify(entry.info)},hero:${hero}${thumbnail},sections:[${sections.join(',')}]}`
         })
         return `${imports.join('\n')}\nexport default [${items.join(',\n')}];`

@@ -3,7 +3,15 @@ import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { footerProgress, NEXT_PROJECT_SCROLL_SCREENS } from '../components/case-study/caseStudyNavigation'
 import { CASE_CONTENT_READY_EVENT } from '../components/case-study/revealOwnership'
-import { CASE_REVEAL_DELAY, CASE_REVEAL_DURATION, CASE_IMAGE_STAGGER, CASE_IMAGE_START_SCALE, CASE_SIDE_REVEAL_START } from '../components/case-study/revealTiming'
+import {
+  CASE_CAPTION_REVEAL_DELAY,
+  CASE_CAPTION_REVEAL_DURATION,
+  CASE_REVEAL_DELAY,
+  CASE_REVEAL_DURATION,
+  CASE_IMAGE_STAGGER,
+  CASE_IMAGE_START_SCALE,
+  CASE_SIDE_REVEAL_START,
+} from '../components/case-study/revealTiming'
 
 gsap.registerPlugin(ScrollTrigger)
 if (import.meta.env.DEV) Object.assign(window, { ScrollTrigger })
@@ -96,6 +104,7 @@ export function useCaseStudyScroll(
         pendingElements.forEach((element) => {
           const isImage = element.classList.contains('case-study__image')
             || element.classList.contains('case-study__hero')
+            || element.classList.contains('case-study__video')
           // Only stagger images sharing a row; stacked mobile images trigger individually.
           const rowIndex = element.classList.contains('case-study__image') && element.parentElement
             ? Array.from(element.parentElement.children).filter(sibling =>
@@ -105,10 +114,15 @@ export function useCaseStudyScroll(
           const metaIndex = element.hasAttribute('data-case-meta')
             ? metadata.indexOf(element)
             : 0
-          const sideways = element.classList.contains('case-study__image')
-            && element.parentElement?.dataset.columns === '1'
+          const sideways = (
+            element.classList.contains('case-study__image')
+              && element.parentElement?.dataset.columns === '1'
+          ) || element.classList.contains('case-study__video')
           const queuedRevealDelay = alreadyReachedDelays.get(element)
           const alreadyReached = queuedRevealDelay !== undefined
+          const revealTarget = isImage
+            ? element.querySelector<HTMLElement>('.case-study__media-frame') ?? element
+            : element
           const reveal = gsap.timeline({
             delay: queuedRevealDelay ?? (
               CASE_REVEAL_DELAY
@@ -120,7 +134,7 @@ export function useCaseStudyScroll(
               ? undefined
               : { trigger: element, start: 'top 90%', once: true },
           })
-          reveal.fromTo(element,
+          reveal.fromTo(revealTarget,
             isImage
               ? { opacity: 0, clipPath: sideways ? CASE_SIDE_REVEAL_START : 'inset(100% 0% 0% 0%)' }
               : { opacity: 0, y: 20 },
@@ -129,8 +143,20 @@ export function useCaseStudyScroll(
               clearProps: isImage ? 'opacity,clipPath' : 'opacity,transform',
             },
           )
-          const image = isImage ? element.querySelector('.progressive-image') : null
+          const image = isImage ? element.querySelector('.progressive-image, .case-study__video-element') : null
           if (image) reveal.fromTo(image, { scale: CASE_IMAGE_START_SCALE }, { scale: 1, clearProps: 'transform' }, 0)
+          const caption = isImage ? element.querySelector<HTMLElement>('[data-case-caption]') : null
+          if (caption) reveal.fromTo(caption,
+            { opacity: 0, y: 10 },
+            {
+              opacity: 1,
+              y: 0,
+              duration: CASE_CAPTION_REVEAL_DURATION,
+              ease: 'power2.out',
+              clearProps: 'opacity,transform',
+            },
+            CASE_CAPTION_REVEAL_DELAY,
+          )
           caseReveals.push(reveal)
         })
       }

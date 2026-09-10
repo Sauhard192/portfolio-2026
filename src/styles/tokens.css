@@ -114,6 +114,10 @@
   --type-case-body-line-height: 1.5;
   --type-case-label-size: var(--font-size-label);
   --type-case-label-weight: var(--font-weight-semibold);
+  --type-case-caption-size: var(--font-size-label);
+  --type-case-caption-weight: var(--font-weight-regular);
+  --type-case-caption-line-height: var(--line-height-label);
+  --case-caption-gap: var(--space-2);
 
   --type-case-note-size: var(--font-size-heading-2);
   --type-case-note-line-height: var(--line-height-heading);
@@ -200,6 +204,7 @@
 
     /* Tablet component typography */
     --type-case-body-size: var(--font-size-body);
+    --case-caption-gap: var(--space-2);
     --type-case-note-size: 1.5rem;
     --type-case-next-size: 3rem;
     --case-intro-offset: 9rem;
@@ -242,6 +247,7 @@
 
     /* Mobile component typography */
     --type-case-note-size: 1.25rem;
+    --case-caption-gap: var(--space-2);
     --type-case-next-size: 2.5rem;
     --case-intro-offset: 8rem;
     --type-media-caption-size: 0.875rem;

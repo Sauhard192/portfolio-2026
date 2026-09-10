@@ -42,7 +42,11 @@
   min-height: 2.75rem;
 }
 .case-study__hero,
-.case-study__image { margin: 0; background: transparent; overflow: hidden; }
+.case-study__image,
+.case-study__video { margin: 0; background: transparent; }
+.case-study__hero,
+.case-study__media-frame { overflow: hidden; }
+.case-study__media-frame { width: 100%; }
 .case-study :is(.case-study__hero, .case-study__image) .image-skeleton {
   background: transparent;
 }
@@ -54,6 +58,45 @@
 .case-study__hero img { width: 100%; height: 100%; object-fit: cover; }
 /* Content images keep their original proportions at every breakpoint. */
 .case-study__image img { width: 100%; height: auto; object-fit: contain; }
+.case-study__video-frame {
+  position: relative;
+  width: 100%;
+  background: transparent;
+  isolation: isolate;
+}
+.case-study__video-element {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  cursor: pointer;
+}
+.case-study__video-frame > .image-skeleton { z-index: 1; }
+.case-study__video-frame[data-video-status='ready'] > .image-skeleton,
+.case-study__video-frame[data-video-status='error'] > .image-skeleton { opacity: 0; }
+.case-study__video-error {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  color: var(--color-text-primary);
+  background: var(--image-skeleton-base);
+  font-size: var(--type-case-caption-size);
+  line-height: var(--type-case-caption-line-height);
+}
+.case-study__video-element:focus-visible {
+  outline-offset: calc(-1 * var(--focus-outline-width));
+}
+.case-study__image-caption {
+  margin-top: var(--case-caption-gap);
+  color: var(--color-secondary);
+  font-size: var(--type-case-caption-size);
+  font-weight: var(--type-case-caption-weight);
+  line-height: var(--type-case-caption-line-height);
+  text-align: left;
+  overflow-wrap: anywhere;
+}
 .case-study__metadata {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -246,4 +289,5 @@
   .next-project__progress { display: none; }
   .next-project__preview img { transition: none; }
   .next-project__preview:has(.next-project__hit-area:is(:hover, :active)) img { transform: none; }
+  .case-study__video-frame > .image-skeleton { transition: none; }
 }

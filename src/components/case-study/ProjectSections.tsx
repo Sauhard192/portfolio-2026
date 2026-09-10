@@ -1,6 +1,7 @@
 import { Fragment, useEffect, useRef, useState } from 'react'
 import type { CaseStudySection, ProjectBody, ProjectImage, TextRun } from '../../types/caseStudy'
 import { ProgressiveImage } from '../ui/ProgressiveImage'
+import { CaseVideo } from './CaseVideo'
 
 function InlineText({ runs }: { runs: TextRun[] }) {
   return runs.map((run, index) => typeof run === 'string'
@@ -59,10 +60,24 @@ export function ProjectSection({ section }: { section: CaseStudySection }) {
     <ProjectText body={section.body} />
   </section>
 
+  if (section.type === 'video') return <figure className="case-study__video" data-case-reveal>
+    <div className="case-study__media-frame">
+      <CaseVideo video={section.video} />
+    </div>
+    {section.video.caption && <figcaption className="case-study__image-caption" data-case-caption>
+      {section.video.caption}
+    </figcaption>}
+  </figure>
+
   const columns = section.images.length
   return <div className="case-study__images" data-columns={columns}>
     {section.images.map((image, index) => <figure className="case-study__image" key={index} data-case-reveal>
-      <CaseImage image={image} sizes={`(max-width: 640px) calc(100vw - 2rem), ${Math.round(100 / columns)}vw`} />
+      <div className="case-study__media-frame">
+        <CaseImage image={image} sizes={`(max-width: 640px) calc(100vw - 2rem), ${Math.round(100 / columns)}vw`} />
+      </div>
+      {image.caption && <figcaption className="case-study__image-caption" data-case-caption>
+        {image.caption}
+      </figcaption>}
     </figure>)}
   </div>
 }

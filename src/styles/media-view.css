@@ -114,6 +114,7 @@
 }
 
 .media-view__zone {
+  display: none;
   position: absolute;
   top: calc((100% - var(--media-image-height)) / 2);
   width: calc((100% - var(--media-image-width)) / 2);
@@ -124,6 +125,11 @@
 .media-view__zone--previous { left: 0; }
 .media-view__zone--next { right: 0; }
 .media-view__zone:focus-visible { outline-offset: -4px; }
+
+/* Empty-space navigation belongs to precise pointer devices. Touch stays swipe-only. */
+@media (hover: hover) and (pointer: fine) {
+  .media-view__zone { display: block; }
+}
 
 .media-view__controls {
   position: fixed;
@@ -186,7 +192,6 @@
     --media-block-clearance: calc(9rem + env(safe-area-inset-bottom));
     --media-caption-gap: var(--space-4);
   }
-  .media-view__zone { display: none; }
   .media-view__controls { display: flex; }
 }
 

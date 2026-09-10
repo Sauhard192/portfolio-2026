@@ -54,9 +54,11 @@ export class CaseStudyLensSource {
       records.map(({ element, rect: r, style: s, opacity, clips }) => [r.x, r.y, r.width, r.height, opacity,
         s.font, s.letterSpacing, s.color, s.backgroundColor, s.transform, clips,
         element instanceof HTMLImageElement ? [element.currentSrc, element.complete, s.objectPosition] :
+          element instanceof HTMLVideoElement ? [element.currentSrc, element.readyState, element.currentTime, s.objectPosition] :
           Array.from(element.childNodes).filter(node => node instanceof Text).map(node => node.textContent).join('')])])
     const dynamic = records.some(({ element }) => element.matches('.image-skeleton') ||
-      element.matches('img[data-lens-animated="true"]'))
+      element.matches('img[data-lens-animated="true"]') ||
+      (element instanceof HTMLVideoElement && !element.paused))
     if (signature === this.signature && !dynamic) return false
     this.signature = signature
     for (let bottom = 0; bottom < 2; bottom++) {
@@ -115,11 +117,13 @@ export class CaseStudyLensSource {
       ctx.fillStyle = gradient
       ctx.fillRect(0, 0, w, h)
     }
-    if (element instanceof HTMLImageElement) {
-      if (!element.complete || !element.naturalWidth) return
+    if (element instanceof HTMLImageElement || element instanceof HTMLVideoElement) {
+      const sourceWidth = element instanceof HTMLImageElement ? element.naturalWidth : element.videoWidth
+      const sourceHeight = element instanceof HTMLImageElement ? element.naturalHeight : element.videoHeight
+      if (element instanceof HTMLImageElement ? !element.complete || !sourceWidth : element.readyState < 2 || !sourceWidth) return
       const fit = style.objectFit === 'contain' ? Math.min : Math.max
-      const scale = fit(w / element.naturalWidth, h / element.naturalHeight)
-      const iw = element.naturalWidth * scale, ih = element.naturalHeight * scale
+      const scale = fit(w / sourceWidth, h / sourceHeight)
+      const iw = sourceWidth * scale, ih = sourceHeight * scale
       const position = style.objectPosition.split(' ')
       ctx.beginPath(); ctx.rect(0, 0, w, h); ctx.clip()
       ctx.drawImage(element, pixels(position[0], w - iw), pixels(position[1] ?? '50%', h - ih), iw, ih)

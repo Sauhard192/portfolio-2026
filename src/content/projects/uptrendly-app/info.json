@@ -1,23 +1,60 @@
 {
   "slug": "uptrendly-app",
   "title": "Uptrendly App",
-  "roles": ["Product Designer", "UI/UX Designer", "Design System", "UX Audit"],
-  "projectType": "Mobile App",
-  "date": "2024",
-  "description": "Uptrendly is a data-driven influencer marketing application that streamlines collaborations by directly bridging the gap between brands and content creators.",
+  "roles": ["Product Design", "UI/UX Design", "Design System", "Mobile App"],
+  "projectType": "UI/UX Design",
+  "date": "2023/2024",
+  "description": "UI/UX and product design for Uptrendly, a platform that connects brands with creators and supports influencer marketing campaigns. The project focused on improving the overall product experience while making the interface more consistent and scalable. Alongside redesigning key flows and screens, I reworked the existing component library into a structured design system and visual language that could support the product as it grew.",
   "hero": "cover.png",
 
 
   "sections": [
     {
       "images":[
-        "img-01.png"
+        "img1.png"
       ]
     },
    {
-      "title": "Some title about the note or project",
-      "body": "Use this space to explain a design decision, a research insight, or a challenge from the project. Describe what you explored and why you chose the direction shown in the images. This is temporary copy; replace it with your own notes."
+      "title": "Design Process",
+      "body": "I combined UX audits, user conversations, and reviews of key flows to identify recurring pain points. Findings were documented and translated into design improvements, then revisited as new features and updates were introduced."
+    },
+    
+    {
+      "images": [
+        {
+          "file": "img2.png",
+          "alt": "",
+          "caption": "Notes made in FigJam for UX audit of various screens and flows."
+        },
+        {
+          "file": "img3.png",
+          "alt": "",
+          "caption": "Documentation of User Interviews"
+        }
+      ]
+    },
+    {
+      "video": "vid1.mp4"
+    },
+    {
+      "video": "vid2.mp4"
+    },
+
+    {
+      "title": "Design System",
+      "body": "I audited the existing design system to improve consistency across color, typography, and UI components. The system was then refined into a clearer visual language with reusable components that made the product easier to maintain and scale."
+    },
+     {
+      "images":[
+        "img4.png",
+        "img5.png",
+        "img6.png"
+      ]
     }
+      
+    
+
+
 
   ]
 }

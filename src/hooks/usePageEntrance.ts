@@ -2,6 +2,8 @@ import { type RefObject, useLayoutEffect, useRef } from 'react'
 import { gsap } from 'gsap'
 import { CASE_CONTENT_READY_EVENT, isInitialCaseStudyElement } from '../components/case-study/revealOwnership'
 import {
+  CASE_CAPTION_REVEAL_DELAY,
+  CASE_CAPTION_REVEAL_DURATION,
   CASE_IMAGE_STAGGER,
   CASE_IMAGE_START_SCALE,
   CASE_REVEAL_DELAY,
@@ -21,13 +23,18 @@ const isVisibleInViewport = (element: HTMLElement) => {
 const isCaseImage = (element: HTMLElement) => (
   element.classList.contains('case-study__hero')
   || element.classList.contains('case-study__image')
+  || element.classList.contains('case-study__video')
 )
 
 const caseImageStart = (element: HTMLElement) => (
-  element.classList.contains('case-study__image')
-    && element.parentElement?.dataset.columns === '1'
+  element.classList.contains('case-study__video')
+  || (element.classList.contains('case-study__image') && element.parentElement?.dataset.columns === '1')
     ? CASE_SIDE_REVEAL_START
     : 'inset(100% 0% 0% 0%)'
+)
+
+const caseImageRevealTarget = (element: HTMLElement) => (
+  element.querySelector<HTMLElement>('.case-study__media-frame') ?? element
 )
 
 export function usePageEntrance(scopeRef: RefObject<HTMLElement | null>, view?: string) {
@@ -80,9 +87,11 @@ export function usePageEntrance(scopeRef: RefObject<HTMLElement | null>, view?: 
       if (!reducedMotion) {
         caseElements.forEach((element) => {
           if (isCaseImage(element)) {
-            gsap.set(element, { opacity: 0, clipPath: caseImageStart(element) })
-            const image = element.querySelector('.progressive-image')
+            gsap.set(caseImageRevealTarget(element), { opacity: 0, clipPath: caseImageStart(element) })
+            const image = element.querySelector('.progressive-image, .case-study__video-element')
             if (image) gsap.set(image, { scale: CASE_IMAGE_START_SCALE })
+            const caption = element.querySelector('[data-case-caption]')
+            if (caption) gsap.set(caption, { opacity: 0, y: 10 })
           } else {
             gsap.set(element, { opacity: 0, y: 20 })
           }
@@ -95,20 +104,28 @@ export function usePageEntrance(scopeRef: RefObject<HTMLElement | null>, view?: 
         position?: gsap.Position,
       ) => {
         if (isCaseImage(element)) {
-          sequence.to(element, {
+          sequence.to(caseImageRevealTarget(element), {
             opacity: 1,
             clipPath: 'inset(0% 0% 0% 0%)',
             duration: CASE_REVEAL_DURATION,
             ease: 'power2.out',
             clearProps: 'clipPath',
           }, position)
-          const image = element.querySelector('.progressive-image')
+          const image = element.querySelector('.progressive-image, .case-study__video-element')
           if (image) sequence.to(image, {
             scale: 1,
             duration: CASE_REVEAL_DURATION,
             ease: 'power2.out',
             clearProps: 'transform',
           }, '<')
+          const caption = element.querySelector('[data-case-caption]')
+          if (caption) sequence.to(caption, {
+            opacity: 1,
+            y: 0,
+            duration: CASE_CAPTION_REVEAL_DURATION,
+            ease: 'power2.out',
+            clearProps: 'opacity,transform',
+          }, `<+=${CASE_CAPTION_REVEAL_DELAY}`)
         } else {
           sequence.to(element, {
             opacity: 1,
@@ -195,8 +212,12 @@ export function usePageEntrance(scopeRef: RefObject<HTMLElement | null>, view?: 
         ]
         gsap.set(allElements, { clearProps: 'opacity,transform,clipPath' })
         caseElements.forEach((element) => {
-          const image = element.querySelector('.progressive-image')
+          const revealTarget = caseImageRevealTarget(element)
+          if (revealTarget !== element) gsap.set(revealTarget, { clearProps: 'opacity,transform,clipPath' })
+          const image = element.querySelector('.progressive-image, .case-study__video-element')
           if (image) gsap.set(image, { clearProps: 'transform' })
+          const caption = element.querySelector('[data-case-caption]')
+          if (caption) gsap.set(caption, { clearProps: 'opacity,transform' })
         })
       }
     }

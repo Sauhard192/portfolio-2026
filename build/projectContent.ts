@@ -2,10 +2,19 @@ import { readFileSync, writeFileSync } from 'node:fs'
 import { readdir, readFile, realpath, stat } from 'node:fs/promises'
 import path from 'node:path'
 import type { ProjectBody, ProjectInfo } from '../src/types/caseStudy.ts'
+import { readVideoMetadata } from './videoMetadata.ts'
 
 const slugPattern = /^[a-z0-9]+(?:-[a-z0-9]+)*$/
 export const PROJECT_ORDER_FILE = 'project-order.json'
-export interface ProjectFile { path: string; alt: string; position?: string }
+export interface ProjectFile { path: string; alt: string; position?: string; caption?: string }
+export interface ProjectVideoFile {
+  path: string
+  width: number
+  height: number
+  alt: string
+  poster?: ProjectFile
+  caption?: string
+}
 export interface ProjectEntry {
   folder: string
   created: number
@@ -16,6 +25,7 @@ export interface ProjectEntry {
   sections: Array<
     | { type: 'notes'; title: string; body: ProjectBody }
     | { type: 'images'; images: ProjectFile[]; aspectRatio?: string }
+    | { type: 'video'; video: ProjectVideoFile }
   >
 }
 
@@ -92,22 +102,28 @@ async function readProject(directory: string, folder: string, placeholderPath: s
     const roles = fields.roles ?? []
     if (!Array.isArray(roles)) throw new Error('roles must be an array of strings.')
     const projectRoot = await realpath(directory)
+    const localFile = async (value: unknown, label: string, extension: RegExp, format: string) => {
+      const file = text(value, label, false)
+      if (path.isAbsolute(file) || file.includes('\\') || file.split('/').includes('..') || /[?#]/.test(file)) {
+        throw new Error(`${label}: use a filename inside this project folder.`)
+      }
+      const filePath = await realpath(path.join(directory, file))
+      if (!filePath.startsWith(projectRoot + path.sep)) throw new Error(`${label}: file must stay inside this project folder.`)
+      if (!extension.test(file) || !(await stat(filePath)).isFile()) throw new Error(`${label}: use ${format}.`)
+      return filePath
+    }
     const image = async (value: unknown, label: string): Promise<ProjectFile> => {
       const imageFields = typeof value === 'string' ? { file: value } : object(value, label)
-      keys(imageFields, ['file', 'alt', 'position'], label)
+      keys(imageFields, ['file', 'alt', 'position', 'caption'], label)
       const file = text(imageFields.file, `${label}.file`, false)
       let imagePath: string
       if (file === '@placeholder') imagePath = placeholderPath
-      else {
-        if (path.isAbsolute(file) || file.includes('\\') || file.split('/').includes('..') || /[?#]/.test(file)) throw new Error(`${label}: use a filename inside this project folder.`)
-        imagePath = await realpath(path.join(directory, file))
-        if (!imagePath.startsWith(projectRoot + path.sep)) throw new Error(`${label}: image must stay inside this project folder.`)
-        if (!/\.(jpe?g|png|webp|avif|gif)$/i.test(file) || !(await stat(imagePath)).isFile()) throw new Error(`${label}: use JPG, PNG, WebP, AVIF or GIF.`)
-      }
+      else imagePath = await localFile(file, label, /\.(jpe?g|png|webp|avif|gif)$/i, 'JPG, PNG, WebP, AVIF or GIF')
       return {
         path: imagePath,
         alt: imageFields.alt === undefined ? (file === '@placeholder' ? 'Temporary project image' : title) : text(imageFields.alt, `${label}.alt`),
         position: imageFields.position === undefined ? undefined : text(imageFields.position, `${label}.position`),
+        caption: imageFields.caption === undefined ? undefined : text(imageFields.caption, `${label}.caption`, false),
       }
     }
     let labels: ProjectInfo['labels']
@@ -122,7 +138,21 @@ async function readProject(directory: string, folder: string, placeholderPath: s
     for (const [index, rawSection] of rawSections.entries()) {
       const label = `sections[${index}]`
       const section = object(rawSection, label)
-      if ('images' in section) {
+      if ('video' in section) {
+        keys(section, ['video', 'poster', 'alt', 'caption'], label)
+        const videoPath = await localFile(section.video, `${label}.video`, /\.mp4$/i, 'an MP4 file')
+        const metadata = await readVideoMetadata(videoPath)
+        sections.push({
+          type: 'video',
+          video: {
+            path: videoPath,
+            ...metadata,
+            alt: section.alt === undefined ? title : text(section.alt, `${label}.alt`),
+            poster: section.poster === undefined ? undefined : await image(section.poster, `${label}.poster`),
+            caption: section.caption === undefined ? undefined : text(section.caption, `${label}.caption`, false),
+          },
+        })
+      } else if ('images' in section) {
         keys(section, ['images', 'aspectRatio'], label)
         if (!Array.isArray(section.images) || section.images.length < 1 || section.images.length > 3) throw new Error(`${label}.images needs one, two or three filenames.`)
         sections.push({ type: 'images', images: await Promise.all(section.images.map((value, i) => image(value, `${label}.images[${i}]`))), aspectRatio: ratio(section.aspectRatio, `${label}.aspectRatio`) })

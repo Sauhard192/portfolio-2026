@@ -64,7 +64,7 @@ export function useMediaDrag(track: RefObject<HTMLDivElement | null>, key: strin
       if (!event.isPrimary) { reset(); return }
       if (!enabled || event.button !== 0 || !track.current) return
       suppressedUntil.current = 0
-      if (event.target instanceof Element && event.target.closest('header, button, figcaption, .media-view__controls, .image-error')) return
+      if (event.target instanceof Element && event.target.closest('header, button, figcaption, .media-view__zone, .media-view__controls, .image-error')) return
       reset()
       gesture.current = { id: event.pointerId, x: event.clientX, y: event.clientY, lastX: event.clientX,
         time: performance.now(), velocity: 0, dx: 0, horizontal: false, target: event.currentTarget }

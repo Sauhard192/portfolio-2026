@@ -5,9 +5,11 @@ import path from 'node:path'
 import os from 'node:os'
 import sharp from 'sharp'
 import { createServer } from 'vite'
+import { createFile } from 'mp4box'
 import { readProjectCollection, PROJECT_ORDER_FILE } from '../build/projectContent.ts'
 import { mediaContent } from '../build/mediaContent.ts'
 import { createImageOptimizer, createAnimationOptimizer } from '../build/mediaImages.ts'
+import { readVideoMetadata } from '../build/videoMetadata.ts'
 
 const placeholder = path.resolve('src/assets/projects/project-placeholder.jpeg')
 const info = { title: 'Sample', hero: 'original-name.jpg', date: 'Summer 2026' }
@@ -22,6 +24,14 @@ async function addProject(root, name, fields = {}) {
   await copyFile(placeholder, path.join(directory, 'original-name.jpg'))
   await writeFile(path.join(directory, 'info.json'), JSON.stringify({ ...info, ...fields }))
   return directory
+}
+async function addVideo(directory, name = 'demo.mp4', width = 320, height = 180) {
+  const file = createFile()
+  file.init({ brands: ['isom'], timescale: 1000, duration: 1000 })
+  file.addTrack({ type: 'avc1', width, height, timescale: 1000, duration: 1000, media_duration: 1000 })
+  const filePath = path.join(directory, name)
+  await writeFile(filePath, new Uint8Array(file.getBuffer().buffer))
+  return filePath
 }
 const read = root => readProjectCollection(root, placeholder)
 const ordered = entries => entries.map(entry => entry.folder)
@@ -59,25 +69,34 @@ test('new batch discovery uses folder creation time, never project dates', async
 
 test('simple sections, optional metadata and original filenames compile without renaming', async t => {
   const root = await fixture(t)
-  await addProject(root, 'sample', {
+  const directory = await addProject(root, 'sample', {
     hero: { file: 'original-name.jpg', alt: 'A descriptive title', position: '50% 30%' },
     thumbnail: '@placeholder', roles: ['Branding', 'Logo'], labels: { date: 'YEAR' },
     sections: [
-      { images: ['original-name.jpg'] },
+      { images: [{ file: 'original-name.jpg', caption: 'A concise image caption' }] },
       { title: 'Notes', body: 'First\n\nSecond' },
       { images: ['@placeholder', 'original-name.jpg'], aspectRatio: '2 / 3' },
       { images: ['@placeholder', '@placeholder', '@placeholder'] },
+      { video: 'demo.mp4', poster: 'original-name.jpg', alt: 'A looping product interaction', caption: 'Prototype interaction.' },
     ],
   })
+  await addVideo(directory)
   const [entry] = await read(root)
   assert.equal(entry.info.slug, 'sample')
   assert.equal(entry.info.date, 'Summer 2026')
   assert.equal(entry.hero.alt, 'A descriptive title')
   assert.equal(entry.hero.position, '50% 30%')
   assert.equal(entry.thumbnail.path, placeholder)
-  assert.deepEqual(entry.sections.map(section => section.type), ['images', 'notes', 'images', 'images'])
+  assert.deepEqual(entry.sections.map(section => section.type), ['images', 'notes', 'images', 'images', 'video'])
   assert.deepEqual(entry.sections.filter(section => section.type === 'images').map(section => section.images.length), [1, 2, 3])
   assert.equal(entry.sections[2].aspectRatio, '2 / 3')
+  assert.equal(entry.sections[0].images[0].caption, 'A concise image caption')
+  assert.deepEqual(entry.sections[4].video, {
+    path: path.join(directory, 'demo.mp4'), width: 320, height: 180,
+    alt: 'A looping product interaction', poster: entry.sections[4].video.poster,
+    caption: 'Prototype interaction.',
+  })
+  assert.equal(entry.sections[4].video.poster.path, path.join(directory, 'original-name.jpg'))
   assert.equal(entry.info.description, '')
   assert.equal(entry.info.siteUrl, undefined)
 })
@@ -98,6 +117,11 @@ test('drafts and empty folders are ignored; invalid content leaves manual orderi
     [{ sections: [{ images: [] }] }, /one, two or three/],
     [{ sections: [{ images: Array(4).fill('@placeholder') }] }, /one, two or three/],
     [{ sections: [{ images: ['@placeholder'], aspectRatio: '0 / 1' }] }, /positive ratio/],
+    [{ sections: [{ images: [{ file: '@placeholder', caption: 2026 }] }] }, /caption must be/],
+    [{ sections: [{ images: [{ file: '@placeholder', caption: '' }] }] }, /non-empty string/],
+    [{ sections: [{ video: 'missing.mp4' }] }, /ENOENT/],
+    [{ sections: [{ video: 'original-name.jpg' }] }, /MP4/],
+    [{ sections: [{ video: 42 }] }, /video must be/],
     [{ sections: [{ title: 'Notes', body: 123 }] }, /text or an array/],
     [{ sections: [{ title: 'Notes', body: [{ type: 'unknown' }] }] }, /paragraph or list/],
     [{ heroo: 'original-name.jpg' }, /unknown field/],
@@ -154,10 +178,23 @@ test('GIFs produce still thumbnails and a cached animation with preserved frames
   assert.deepEqual(await readFile(gif), original)
 })
 
+test('MP4 dimensions are read without FFmpeg', async t => {
+  const root = await fixture(t)
+  const videoPath = await addVideo(root, 'dimensions.mp4', 854, 480)
+  assert.deepEqual(await readVideoMetadata(videoPath), { width: 854, height: 480 })
+  const invalidPath = path.join(root, 'invalid.mp4')
+  await writeFile(invalidPath, 'not an mp4')
+  await assert.rejects(readVideoMetadata(invalidPath), /readable movie header/)
+})
+
 test('Vite discovers projects, respects URL base, and refreshes JSON/order/image edits', async t => {
   const root = await fixture(t)
   const projects = path.join(root, 'src/content/projects')
   const first = await addProject(projects, 'first')
+  await addVideo(first)
+  await writeFile(path.join(first, 'info.json'), JSON.stringify({
+    ...info, sections: [{ video: 'demo.mp4', caption: 'Demo video' }],
+  }))
   const server = await createServer({
     configFile: false, root, base: '/portfolio-2026/', plugins: [mediaContent()], logLevel: 'silent',
     server: { middlewareMode: true, watch: { usePolling: true, interval: 30 } }, optimizeDeps: { noDiscovery: true },
@@ -166,6 +203,8 @@ test('Vite discovers projects, respects URL base, and refreshes JSON/order/image
   await new Promise(resolve => server.watcher.once('ready', resolve))
   const id = 'virtual:portfolio-projects'
   assert.match((await server.transformRequest(id)).code, /"slug":"first"/)
+  assert.match((await server.transformRequest(id)).code, /"width":320,"height":180/)
+  assert.match((await server.transformRequest(id)).code, /demo\.mp4/)
   const imageId = '/src/content/projects/first/original-name.jpg?portfolio-image'
   const initialImage = (await server.transformRequest(imageId)).code
   assert.match(initialImage, /portfolio-2026\/node_modules\/.cache\/portfolio-media/)

@@ -1,46 +1,77 @@
 # Managing Art and Photography
 
-Each item has its own folder. Art and Photography stay separate, but use the same format.
+Art and Photography are separate collections, but they use the same folder structure and `info.json` format.
+
+## Quick start
+
+Every item needs one folder containing exactly one image and one `info.json` file:
 
 ```text
 src/content/
   art/
-    afterimage/
-      image.jpeg
+    my-new-artwork/
+      image.jpg
       info.json
   photography/
-    floating-reflections/
-      image.jpeg
+    evening-walk/
+      image.jpg
       info.json
 ```
 
-## Replace an image
+Use this starter `info.json` for either collection:
 
-Open the item's folder and replace `image.jpeg` with your image. Use exactly one of:
-`image.webp`, `image.avif`, `image.jpg`, `image.jpeg`, or `image.png`.
-Delete the old image if the extension changes. Do not just rename a JPEG to WebP;
-export it in the desired format first.
+```json
+{
+  "title": "Evening Walk",
+  "caption": "Late light across the empty street.",
+  "date": "2025-07-19",
+  "location": "Kathmandu",
+  "alt": "A quiet street illuminated by warm evening sunlight"
+}
+```
 
-Dimensions are detected automatically. Grid and Spiral crop thumbnails;
-the shared Media View preserves the original image's aspect ratio.
-Optimized WebP copies are generated automatically; your original is never changed:
+## Field reference
 
-- Grid: 480px and 960px maximum long edge, chosen for the displayed card size.
-- Spiral: 1024px maximum long edge, keeping textures small in graphics memory.
-- Media View: 2560px maximum long edge, high-quality and uncropped.
+| Field | Required? | Purpose |
+| --- | --- | --- |
+| `title` | Yes | Item name. Changing it does not change the URL. |
+| `caption` | Yes | Short description shown beneath the image. |
+| `date` | Yes | Controls the displayed date and automatic ordering. |
+| `location` | No | Place shown beside the date. Omit it or use `""` when unknown. |
+| `alt` | No | Accessible image description. Defaults to the caption. |
 
-Small originals are never enlarged. Orientation is corrected automatically.
-You still maintain only one image per folder—no manual thumbnail files.
-Image quality/size settings live in `build/mediaImages.ts`.
+Use double quotes, and do not put a trailing comma after the final property.
 
-The first preview/build after adding an image takes extra time to generate its copies.
-Later runs reuse `node_modules/.cache/portfolio-media/`; changing the original regenerates
-them automatically. These generated copies are excluded from Git, and originals
-are not included in the published website. The cache can be regenerated at any time.
+## Art example
 
-## Edit the details
+Create a folder inside `src/content/art`:
 
-Open `info.json` in that folder:
+```text
+art/
+  watercolor-crow/
+    image.webp
+    info.json
+```
+
+```json
+{
+  "title": "Watercolor Crow",
+  "caption": "A study of shape, texture, and restrained color.",
+  "date": "2024",
+  "alt": "Watercolor painting of a crow in profile"
+}
+```
+
+## Photography example
+
+Create a folder inside `src/content/photography`:
+
+```text
+photography/
+  floating-reflections/
+    image.jpeg
+    info.json
+```
 
 ```json
 {
@@ -48,53 +79,104 @@ Open `info.json` in that folder:
   "caption": "Reflections on a quiet afternoon.",
   "date": "2025-07-19",
   "location": "Lumbini",
-  "alt": "Trees reflected in still water."
+  "alt": "Trees reflected in still water"
 }
 ```
 
-- `title`: item name. Changing this does not change its URL.
-- `caption`: short text shown beneath the image.
-- `date`: use `YYYY-MM-DD`, e.g. `2025-07-19`, displayed as **July 19, 2025**.
-  If you only know the year, use `2025`; it will display just **2025**.
-  Written dates or mixed labels such as `Lumbini, 2025` are no longer accepted here.
-- `location`: optional. With a location, the second line reads
-  **Lumbini · July 19, 2025**. Set it to `""` or omit it to show only the date,
-  with no extra separator. The first line remains your caption.
-- `alt`: accessible image description. Optional; defaults to the caption.
+## Date and location rules
 
-Art and Photography each sort **newest first** automatically. Grid, Spiral, and
-previous/next navigation share that order. Same-date items sort by folder name.
-Year-only entries follow fully dated entries within that year, but precede older
-years. No separate `order` field is needed.
+Use one of these date formats:
 
-Use double quotes and no trailing comma after the final property.
+| Entered value | Displayed value |
+| --- | --- |
+| `"2025-07-19"` | **July 19, 2025** |
+| `"2025"` | **2025** |
 
-## Add an item
+Written dates and mixed values such as `"July 19, 2025"` or `"Lumbini, 2025"` are not accepted.
 
-1. Duplicate an existing item folder inside `art/` or `photography/`.
-2. Rename the folder, e.g. `evening-walk` (lowercase, hyphens, no spaces).
-3. Replace its image and edit `info.json`, including its date, optional location, and alt text.
+When `location` is present, the metadata line displays:
 
-The folder name is the URL slug: `photography/evening-walk`.
-Keep it stable once published; renaming it changes the link.
-You do not need to edit imports, arrays, React pages, or image dimensions.
-There is no required item count: Grid continues with the first item immediately
-after the last, including halfway through a row, at all column counts.
+```text
+Lumbini · July 19, 2025
+```
+
+When `location` is empty or omitted, only the date is displayed—there is no extra separator.
+
+## Add a new item
+
+1. Duplicate an existing folder inside `art` or `photography`.
+2. Rename the folder using lowercase letters and hyphens, such as `evening-walk`.
+3. Replace the existing image.
+4. Update every field in `info.json`.
+5. Run `npm run dev` to check the result.
+
+The folder name becomes the URL slug. For example, `photography/evening-walk` becomes `/photography/evening-walk`. Art items use `/art/folder-name`. Keep the folder name stable after publishing because renaming it changes the URL.
+
+You do not need to edit imports, arrays, React pages, item counts, image dimensions, or a separate ordering file.
+
+## Replace an image
+
+Keep exactly one image in each item folder. Its name must be `image` with one of these extensions:
+
+- `image.webp`
+- `image.avif`
+- `image.jpg`
+- `image.jpeg`
+- `image.png`
+
+If the extension changes, delete the previous image. Renaming `image.jpg` to `image.webp` does not convert it—export a real WebP file from your image editor.
+
+Image dimensions and orientation are detected automatically. You do not need to create thumbnails or enter width and height.
+
+## Automatic ordering
+
+Art and Photography each sort newest first using `date`. Grid View, Spiral View, and previous/next navigation all use the same order.
+
+Ordering rules:
+
+1. Newer dates appear first.
+2. Items with the same date sort by folder name.
+3. A year-only item appears after fully dated items from that year.
+4. A year-only item still appears before items from older years.
+
+There is no `order` field or manual order file for Art and Photography.
+
+The repeating Grid View continues with the first item immediately after the last, even when the final item ends partway through a row. There is no required item count.
+
+## How images are displayed
+
+You maintain only the original image. The site automatically creates optimized WebP copies for each view:
+
+| View | Generated size | Display behavior |
+| --- | --- | --- |
+| Grid | 480px and 960px maximum long edge | Cropped thumbnail selected for the card size. |
+| Spiral | 1024px maximum long edge | Cropped texture sized for graphics-memory efficiency. |
+| Media View | 2560px maximum long edge | High-quality, uncropped image preserving its original ratio. |
+
+Small originals are never enlarged. Originals are never changed and are not included separately in the published site.
+
+The first preview or build after adding an image may take longer while these copies are generated. Later runs reuse `node_modules/.cache/portfolio-media`. Replacing an original automatically regenerates its copies. The cache is excluded from Git and can be safely regenerated.
+
+Image quality and size settings live in `build/mediaImages.ts`; normal content editing does not require changing that file.
 
 ## Hide or remove an item
 
-Prefix its folder with `_` to keep it as a draft, e.g. `_evening-walk`.
-Remove the prefix to publish it again. Delete an item folder to remove it permanently.
-Removing an item makes its old detail link unavailable.
+To keep an item as a draft, prefix its folder with `_`:
+
+```text
+_evening-walk
+```
+
+Remove the prefix to publish it again.
+
+Delete the entire item folder to remove it permanently. Its old detail-page link will then become unavailable.
 
 ## Preview and publish
 
-Run `npm run dev`. Saving details, replacing images, and adding/removing folders
-automatically refreshes the local preview. Complete both files if a temporary
-missing-file error appears while copying a folder.
+Run `npm run dev` for a local preview. Saving `info.json`, replacing images, and adding or removing folders refreshes the preview automatically.
 
-Run `npm run build` to validate all content before publishing. Errors identify the
-folder and missing/invalid field. Deploy the new build for changes to appear online.
+If a temporary missing-file error appears while duplicating a folder, finish copying both `image.*` and `info.json`.
 
-`artworks.ts` and `photographs.ts` are automatic collection exports—leave them alone.
-The shared loader lives in `build/mediaContent.ts`; only developers need to edit it.
+Run `npm run build` before publishing. Validation errors identify the folder and the missing or invalid field.
+
+The files `artworks.ts` and `photographs.ts` are automatic collection exports—leave them unchanged. The shared content loader is `build/mediaContent.ts` and only needs to be edited when changing the content system itself.

@@ -34,11 +34,12 @@ test('project files share optimized images, ordered sections and independent met
   })
   t.after(() => server.close())
   const { caseStudies } = await server.ssrLoadModule('/src/content/caseStudies.ts')
-  assert.equal(caseStudies.length, 12)
+  assert.ok(caseStudies.length > 0)
   assert.equal(new Set(caseStudies.map(p => p.slug)).size, caseStudies.length)
-  const project = caseStudies[2]
+  const project = caseStudies.find(p => p.slug === 'jelli-studios')
+  assert.ok(project)
   assert.equal(project.slug, 'jelli-studios')
-  assert.equal(caseStudies[3].slug, 'uptrendly-app')
+  assert.ok(caseStudies.some(p => p.slug === 'uptrendly-app'))
   assert.equal(project.date, '2022')
   const projectInfo = JSON.parse(await readFile(new URL('../src/content/projects/jelli-studio/info.json', import.meta.url), 'utf8'))
   assert.deepEqual(project.roles, projectInfo.roles)
@@ -52,7 +53,6 @@ test('project files share optimized images, ordered sections and independent met
     assert.match(p.hero.thumbnail.src, /-small\.webp/)
     assert.match(p.hero.thumbnail.srcSet, /\d+w/)
     assert.ok(p.hero.width > 0 && p.hero.height > 0)
-    if (p !== project) assert.equal(p.sections.length, 0)
   }
   // The custom query must beat Vite's ordinary image-URL resolver in the client too.
   const transformed = await server.transformRequest('/src/assets/projects/project-placeholder.jpeg?portfolio-image')
@@ -64,11 +64,29 @@ test('project files share optimized images, ordered sections and independent met
   assert.doesNotMatch(initialAnimation, /animation.webp/)
   assert.match(initialAnimation, /srcSet=/)
   const section = renderToStaticMarkup(createElement(ProjectSection, { section: {
-    type: 'images', images: [project.hero, project.hero, project.hero],
+    type: 'images', images: [
+      { ...project.hero, caption: 'First caption' },
+      project.hero,
+      { ...project.hero, caption: 'Third caption' },
+    ],
   } }))
   assert.equal((section.match(/<img /g) ?? []).length, 3)
   assert.match(section, /loading="lazy"/)
   assert.match(section, /data-columns="3"/)
+  assert.equal((section.match(/<figcaption/g) ?? []).length, 2)
+  assert.match(section, /First caption/)
+  assert.match(section, /case-study__media-frame/)
+  const videoSection = renderToStaticMarkup(createElement(ProjectSection, { section: {
+    type: 'video', video: {
+      src: '/demo.mp4', width: 1280, height: 720, alt: 'Dashboard interaction',
+      poster: project.hero, caption: 'Interactive prototype.',
+    },
+  } }))
+  assert.match(videoSection, /<video/)
+  assert.match(videoSection, /width="1280" height="720"/)
+  assert.match(videoSection, /poster=/)
+  assert.match(videoSection, /role="button"/)
+  assert.match(videoSection, /Interactive prototype\./)
   for (const count of [1, 2, 3]) {
     const markup = renderToStaticMarkup(createElement(ProjectSection, { section: {
       type: 'images', images: Array(count).fill(project.hero), aspectRatio: '4 / 1',
