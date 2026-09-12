@@ -63,6 +63,20 @@ export function CaseVideo({ video }: { video: ProjectVideo }) {
     togglePlayback()
   }
 
+  const syncPausedState = (nextPaused: boolean) => {
+    setPaused(nextPaused)
+
+    const element = elementRef.current
+    if (!element?.matches(':hover')) return
+
+    window.dispatchEvent(new CustomEvent('portfolio:cursor-target', {
+      detail: {
+        interactive: true,
+        tooltip: nextPaused ? 'PLAY' : 'PAUSE',
+      },
+    }))
+  }
+
   const action = paused ? 'Play' : 'Pause'
   const description = video.alt.trim() ? `: ${video.alt}` : ''
   return <div className="case-study__video-frame" data-video-status={status}
@@ -84,14 +98,15 @@ export function CaseVideo({ video }: { video: ProjectVideo }) {
       aria-label={`${action} video${description}`}
       aria-pressed={!paused}
       data-cursor="interactive"
+      data-tooltip={action.toUpperCase()}
       onClick={togglePlayback}
       onKeyDown={handleKeyDown}
       onLoadedData={() => setStatus('ready')}
       onCanPlay={() => {
         setStatus('ready')
       }}
-      onPlay={() => setPaused(false)}
-      onPause={() => setPaused(true)}
+      onPlay={() => syncPausedState(false)}
+      onPause={() => syncPausedState(true)}
       onError={() => setStatus('error')}
     />
     {status === 'error' && <span className="case-study__video-error" role="status">Video unavailable</span>}

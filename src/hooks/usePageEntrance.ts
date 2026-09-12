@@ -1,6 +1,7 @@
-import { type RefObject, useLayoutEffect, useRef } from 'react'
+import { type RefObject, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { gsap } from 'gsap'
 import { CASE_CONTENT_READY_EVENT, isInitialCaseStudyElement } from '../components/case-study/revealOwnership'
+import { isStartupPending, STARTUP_READY_EVENT } from '../components/layout/startupTransition'
 import {
   CASE_CAPTION_REVEAL_DELAY,
   CASE_CAPTION_REVEAL_DURATION,
@@ -39,6 +40,17 @@ const caseImageRevealTarget = (element: HTMLElement) => (
 
 export function usePageEntrance(scopeRef: RefObject<HTMLElement | null>, view?: string) {
   const previousView = useRef(view)
+  const [startupReady, setStartupReady] = useState(() => !isStartupPending())
+
+  useEffect(() => {
+    if (startupReady) return
+
+    const handleStartupReady = () => setStartupReady(true)
+    window.addEventListener(STARTUP_READY_EVENT, handleStartupReady, { once: true })
+    if (!isStartupPending()) setStartupReady(true)
+
+    return () => window.removeEventListener(STARTUP_READY_EVENT, handleStartupReady)
+  }, [startupReady])
 
   useLayoutEffect(() => {
     const scope = scopeRef.current
@@ -65,6 +77,9 @@ export function usePageEntrance(scopeRef: RefObject<HTMLElement | null>, view?: 
     if (allTextLines.length > 0) gsap.set(allTextLines, { opacity: 0, y: 24 })
     if (allImages.length > 0) gsap.set(allImages, { opacity: 0 })
     if (allMetadata.length > 0) gsap.set(allMetadata, { opacity: 0, y: 14 })
+
+    // The startup curtain hands off before the page's own entrance begins.
+    if (!startupReady) return
 
     const markCaseContentReady = () => {
       scope.dataset.caseContentReady = 'true'
@@ -278,5 +293,5 @@ export function usePageEntrance(scopeRef: RefObject<HTMLElement | null>, view?: 
       const allElements = [...headerElements, ...allTextLines, ...allImages, ...allMetadata]
       if (allElements.length > 0) gsap.set(allElements, { clearProps: 'opacity,transform,clipPath' })
     }
-  }, [scopeRef, view])
+  }, [scopeRef, startupReady, view])
 }

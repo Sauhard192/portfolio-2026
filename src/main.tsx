@@ -11,6 +11,8 @@ if (!rootElement) {
   throw new Error('Root element not found')
 }
 
+document.documentElement.dataset.startup = 'loading'
+
 createRoot(rootElement).render(
   <StrictMode>
     <BrowserRouter basename={import.meta.env.BASE_URL}>
@@ -18,4 +20,3 @@ createRoot(rootElement).render(
     </BrowserRouter>
   </StrictMode>,
 )
-

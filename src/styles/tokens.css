@@ -3,9 +3,10 @@
   --image-skeleton-highlight: #f5f5f5;
   --image-fade-duration: 250ms;
   /* Color */
+  --color-ink: #100f0f;
   --color-background: #ededed;
   --color-surface: #fafafa;
-  --color-foreground: #100f0f;
+  --color-foreground: var(--color-ink);
   --color-text-primary: var(--color-foreground);
   --color-secondary: #666;
   --color-text-secondary: var(--color-secondary);
@@ -88,10 +89,10 @@
   
   --type-card-title-size: var(--font-size-body);
   --type-card-title-weight: var(--font-weight-semibold);
-  --type-card-title-line-height: 1.125rem;
-  --type-card-meta-size: var(--font-size-caption);
+  --type-card-title-line-height: 1.5rem;
+  --type-card-meta-size: var(--font-size-label);
   --type-card-meta-weight: var(--font-weight-regular);
-  --type-card-meta-line-height: 1rem;
+  --type-card-meta-line-height: 1.475rem;
 
   --type-contact-label-size: var(--font-size-label);
   --type-contact-label-weight: var(--font-weight-medium);
@@ -258,7 +259,7 @@
 
     --type-card-title-size: var(--font-size-body);
     --type-card-title-line-height: 0.875rem;
-    --type-card-meta-size: var(--font-size-caption);
+    --type-card-meta-size: var(--font-size-label);
     --type-card-meta-line-height: 0.875rem;
 
     --type-contact-heading-size: var(--font-size-display);

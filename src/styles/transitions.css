@@ -23,10 +23,48 @@
   will-change: transform;
 }
 
+.startup-loader {
+  position: fixed;
+  z-index: calc(var(--z-transition) + 1);
+  inset: 0;
+  display: grid;
+  place-items: center;
+  overflow: clip;
+  background: var(--color-foreground);
+  color: var(--color-surface);
+  pointer-events: all;
+}
+
+.startup-loader__text {
+  position: relative;
+  z-index: 1;
+  font-size: var(--font-size-label);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-label);
+  letter-spacing: var(--letter-spacing-label);
+  will-change: opacity, transform, filter;
+}
+
+.startup-loader__curtain {
+  position: absolute;
+  z-index: 2;
+  inset: 0;
+  transform: translate3d(0, 100%, 0);
+  will-change: transform;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .route-transition__curtain {
     opacity: 0;
     transform: none;
     will-change: auto;
+  }
+
+  .startup-loader__text {
+    will-change: opacity;
+  }
+
+  .startup-loader__curtain {
+    display: none;
   }
 }

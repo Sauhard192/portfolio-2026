@@ -1,10 +1,61 @@
 {
   "slug": "gangwars-nft-game",
   "title": "GangWars - NFT Game",
-  "roles": [],
-  "projectType": "NFT game",
-  "date": "2026",
-  "description": "Case study coming soon.",
-  "hero": "@placeholder",
-  "sections": []
+  "roles": ["Game UI", "UI/UX Design", "UI Animation", "Design System"],
+  "projectType": "UI/UX Design",
+  "date": "2023",
+  "description": "GangWars is a Web3 simulation RPG by GangstaVerse, built around 5,555 GangstaBet NFTs. I designed the game’s visual identity and UI/UX from scratch, creating a scalable system for battles, weapons, abilities, inventory, and rewards within a gritty, vintage-inspired web experience.",
+  "hero": "cover.png",
+  "sections": [
+    {
+      "video": "vid1.mp4"
+    },
+    {
+      "title": "Inventory UI",
+      "body": "I designed the inventory interface to help players quickly browse, understand, and manage their game items. A vertical navigation system separates weapons, abilities, items, and loot crates, while the main grid and detail panel let players inspect stats, requirements, repair states, and other item-specific actions without leaving the screen. Attention indicators were also used to highlight categories that required player action."
+    },
+    {
+      "video": "vid2.mp4",
+      "poster": "thumb-vid2.png"
+    },
+    {
+      "title": "Gangstabets, Wars & Leaderboard",
+      "body": "Shared navigation, hierarchy, and interaction patterns were kept consistent across the screens so the experience felt connected while supporting different gameplay needs."
+    },
+    {
+      "images": [
+        "img1.png"
+      ]
+    },
+    {
+      "images": [
+        "img2.png",
+        "img3.png"
+      ]
+    },
+
+    {
+      "title": "Post Game Screens & Rewards Flow",
+      "body": "The post-battle flow was designed to make outcomes feel immediate and rewarding while clearly communicating performance. Victory and defeat states lead into a results screen with team stats and rewards, followed by crate-opening interactions that reveal earned items."
+    },
+
+    {
+      "images": [
+        "img4.png",
+        "img5.png"
+      ]
+    },
+    {
+      "images": [
+        "img6.png"
+      ]
+    },
+    {
+      "images": [
+        "img7.png",
+        "img8.png"
+      ]
+    }
+    
+  ]
 }

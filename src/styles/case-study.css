@@ -224,6 +224,9 @@
   --color-secondary: var(--color-background);
   color: var(--color-surface);
 }
+.case-study-page[data-footer-active='true'] .home-header:not([data-menu-open='true']) .menu-toggle__icon {
+  fill: var(--color-ink);
+}
 .case-study-page[data-footer-active='true'] .site-cursor { --color-foreground: var(--color-surface); }
 /* The pinned footer has its own stacking context: leave its progress rail uncovered. */
 .case-study-page[data-footer-active='true'] .gallery-edge-lens {
