@@ -1,4 +1,5 @@
 import { useLayoutEffect, useRef } from 'react'
+import { acquireDocumentScrollLock } from './documentScrollLock'
 
 // Discard the tail of the gesture that opened the next case study.
 export const CASE_SCROLL_QUIET_MS = 180
@@ -10,8 +11,7 @@ export function useTransitionScrollLock(active: boolean, caseDestination: boolea
     wasActive.current = active
     if (!active && !caseDestination) return
 
-    const previousOverflow = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
+    const releaseDocumentLock = acquireDocumentScrollLock('route-transition')
     document.documentElement.dataset.routeScrollLocked = 'true'
     let timer = 0
     let maximumTimer = 0
@@ -21,7 +21,7 @@ export function useTransitionScrollLock(active: boolean, caseDestination: boolea
       released = true
       clearTimeout(timer)
       clearTimeout(maximumTimer)
-      document.body.style.overflow = previousOverflow
+      releaseDocumentLock()
       delete document.documentElement.dataset.routeScrollLocked
       window.removeEventListener('wheel', block, true)
       window.removeEventListener('touchmove', block, true)

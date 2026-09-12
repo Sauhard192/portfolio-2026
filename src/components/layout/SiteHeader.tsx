@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { NavLink, useLocation } from 'react-router-dom'
 
+import jhelliLogo from '../../assets/icons/jhelli-logo.svg'
+import { acquireDocumentScrollLock } from '../../hooks/documentScrollLock'
 import type { HomeView, MediaGalleryView } from '../../types/home'
 import { ScrambleText } from '../ui/ScrambleText'
 
@@ -56,10 +58,9 @@ export function SiteHeader({
   useEffect(() => {
     if (!menuOpen) return
 
-    const previousOverflow = document.body.style.overflow
     const menu = menuRef.current
     const focusableLinks = menu?.querySelectorAll<HTMLElement>('a[href]') ?? []
-    document.body.style.overflow = 'hidden'
+    const releaseScrollLock = acquireDocumentScrollLock('mobile-menu')
     focusableLinks[0]?.focus()
 
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -85,7 +86,7 @@ export function SiteHeader({
     window.addEventListener('keydown', handleKeyDown)
 
     return () => {
-      document.body.style.overflow = previousOverflow
+      releaseScrollLock()
       window.removeEventListener('keydown', handleKeyDown)
     }
   }, [menuOpen, transitionMenu])
@@ -109,7 +110,14 @@ export function SiteHeader({
         aria-label="Jhelli home"
         onClick={handleNavClick('/')}
       >
-        JHELLI
+        <span
+          className="home-logo__mark"
+          style={{
+            maskImage: `url("${jhelliLogo}")`,
+            WebkitMaskImage: `url("${jhelliLogo}")`,
+          }}
+          aria-hidden="true"
+        />
       </NavLink>
 
       {showViewSwitcher && (

@@ -1,6 +1,7 @@
 import { useLayoutEffect, useRef, useState } from 'react'
 import { gsap } from 'gsap'
 
+import { acquireDocumentScrollLock } from '../../hooks/documentScrollLock'
 import { STARTUP_READY_EVENT } from './startupTransition'
 
 const MINIMUM_DISPLAY_MS = 1800
@@ -101,8 +102,7 @@ export function StartupLoader() {
     if (!root || !text || !curtain) return
 
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    const previousOverflow = document.body.style.overflow
-    document.body.style.overflow = 'hidden'
+    const releaseScrollLock = acquireDocumentScrollLock('startup-loader')
     window.scrollTo(0, 0)
 
     let cancelled = false
@@ -152,7 +152,7 @@ export function StartupLoader() {
         onComplete: () => {
           document.documentElement.dataset.startup = 'complete'
           window.dispatchEvent(new Event(STARTUP_READY_EVENT))
-          document.body.style.overflow = previousOverflow
+          releaseScrollLock()
           setVisible(false)
         },
       })
@@ -184,7 +184,7 @@ export function StartupLoader() {
       cancelled = true
       timeline?.kill()
       gsap.killTweensOf([root, text, curtain])
-      document.body.style.overflow = previousOverflow
+      releaseScrollLock()
     }
   }, [])
 

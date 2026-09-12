@@ -8,6 +8,7 @@ import { CaseImage, ProjectSection, ProjectText } from '../components/case-study
 import { NextProjectFooter } from '../components/case-study/NextProjectFooter'
 import { nextProjectIndex } from '../components/case-study/caseStudyNavigation'
 import { caseStudies } from '../content/caseStudies'
+import { useCaseStudyReadyScrollLock } from '../hooks/useCaseStudyReadyScrollLock'
 import { usePageEntrance } from '../hooks/usePageEntrance'
 import { useDocumentTitle } from '../hooks/useDocumentTitle'
 import type { CaseStudy } from '../types/caseStudy'
@@ -23,6 +24,7 @@ export function CaseStudyPage() {
 
 function CaseStudyContent({ project, next }: { project?: CaseStudy; next?: CaseStudy }) {
   const pageRef = useRef<HTMLElement>(null)
+  useCaseStudyReadyScrollLock(pageRef, Boolean(project))
   usePageEntrance(pageRef)
   useDocumentTitle(`${project?.title ?? 'Project not found'} — Sauhard Shrestha`)
   useLayoutEffect(() => {

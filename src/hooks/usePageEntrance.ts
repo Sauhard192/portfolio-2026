@@ -5,10 +5,15 @@ import { isStartupPending, STARTUP_READY_EVENT } from '../components/layout/star
 import {
   CASE_CAPTION_REVEAL_DELAY,
   CASE_CAPTION_REVEAL_DURATION,
+  CASE_CAPTION_START_Y,
   CASE_IMAGE_STAGGER,
   CASE_IMAGE_START_SCALE,
   CASE_REVEAL_DELAY,
   CASE_REVEAL_DURATION,
+  CASE_SCROLL_REVEAL_START_OPACITY,
+  CASE_SCROLL_REVEAL_START_Y,
+  CASE_SCROLL_SIDE_REVEAL_START,
+  CASE_SCROLL_VERTICAL_REVEAL_START,
   CASE_SIDE_REVEAL_START,
 } from '../components/case-study/revealTiming'
 
@@ -32,6 +37,13 @@ const caseImageStart = (element: HTMLElement) => (
   || (element.classList.contains('case-study__image') && element.parentElement?.dataset.columns === '1')
     ? CASE_SIDE_REVEAL_START
     : 'inset(100% 0% 0% 0%)'
+)
+
+const caseScrollImageStart = (element: HTMLElement) => (
+  element.classList.contains('case-study__video')
+  || (element.classList.contains('case-study__image') && element.parentElement?.dataset.columns === '1')
+    ? CASE_SCROLL_SIDE_REVEAL_START
+    : CASE_SCROLL_VERTICAL_REVEAL_START
 )
 
 const caseImageRevealTarget = (element: HTMLElement) => (
@@ -101,14 +113,26 @@ export function usePageEntrance(scopeRef: RefObject<HTMLElement | null>, view?: 
 
       if (!reducedMotion) {
         caseElements.forEach((element) => {
+          const initial = element.dataset.caseRevealOwner === 'entrance'
           if (isCaseImage(element)) {
-            gsap.set(caseImageRevealTarget(element), { opacity: 0, clipPath: caseImageStart(element) })
+            if (initial) {
+              gsap.set(caseImageRevealTarget(element), { opacity: 0, clipPath: caseImageStart(element) })
+            } else {
+              gsap.set(caseImageRevealTarget(element), {
+                opacity: 1,
+                clipPath: caseScrollImageStart(element),
+              })
+            }
             const image = element.querySelector('.progressive-image, .case-study__video-element')
             if (image) gsap.set(image, { scale: CASE_IMAGE_START_SCALE })
             const caption = element.querySelector('[data-case-caption]')
-            if (caption) gsap.set(caption, { opacity: 0, y: 10 })
+            if (caption) gsap.set(caption, initial
+              ? { opacity: 0, y: 10 }
+              : { opacity: CASE_SCROLL_REVEAL_START_OPACITY, y: CASE_CAPTION_START_Y })
           } else {
-            gsap.set(element, { opacity: 0, y: 20 })
+            gsap.set(element, initial
+              ? { opacity: 0, y: 20 }
+              : { opacity: CASE_SCROLL_REVEAL_START_OPACITY, y: CASE_SCROLL_REVEAL_START_Y })
           }
         })
       }

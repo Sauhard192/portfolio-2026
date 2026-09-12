@@ -6,10 +6,15 @@ import { CASE_CONTENT_READY_EVENT } from '../components/case-study/revealOwnersh
 import {
   CASE_CAPTION_REVEAL_DELAY,
   CASE_CAPTION_REVEAL_DURATION,
+  CASE_CAPTION_START_Y,
   CASE_REVEAL_DELAY,
   CASE_REVEAL_DURATION,
   CASE_IMAGE_STAGGER,
   CASE_IMAGE_START_SCALE,
+  CASE_SCROLL_REVEAL_START_OPACITY,
+  CASE_SCROLL_REVEAL_START_Y,
+  CASE_SCROLL_SIDE_REVEAL_START,
+  CASE_SCROLL_VERTICAL_REVEAL_START,
   CASE_SIDE_REVEAL_START,
 } from '../components/case-study/revealTiming'
 
@@ -114,15 +119,8 @@ export function useCaseStudyScroll(
           const metaIndex = element.hasAttribute('data-case-meta')
             ? metadata.indexOf(element)
             : 0
-          const sideways = (
-            element.classList.contains('case-study__image')
-              && element.parentElement?.dataset.columns === '1'
-          ) || element.classList.contains('case-study__video')
           const queuedRevealDelay = alreadyReachedDelays.get(element)
           const alreadyReached = queuedRevealDelay !== undefined
-          const revealTarget = isImage
-            ? element.querySelector<HTMLElement>('.case-study__media-frame') ?? element
-            : element
           const reveal = gsap.timeline({
             delay: queuedRevealDelay ?? (
               CASE_REVEAL_DELAY
@@ -134,20 +132,33 @@ export function useCaseStudyScroll(
               ? undefined
               : { trigger: element, start: 'top 90%', once: true },
           })
-          reveal.fromTo(revealTarget,
-            isImage
-              ? { opacity: 0, clipPath: sideways ? CASE_SIDE_REVEAL_START : 'inset(100% 0% 0% 0%)' }
-              : { opacity: 0, y: 20 },
+          const sideways = element.classList.contains('case-study__video')
+            || (element.classList.contains('case-study__image') && element.parentElement?.dataset.columns === '1')
+          const revealTarget = isImage
+            ? element.querySelector<HTMLElement>('.case-study__media-frame') ?? element
+            : element
+          if (isImage) reveal.fromTo(revealTarget,
             {
-              ...(isImage ? { opacity: 1, clipPath: 'inset(0% 0% 0% 0%)' } : { opacity: 1, y: 0 }),
-              clearProps: isImage ? 'opacity,clipPath' : 'opacity,transform',
+              opacity: 1,
+              clipPath: sideways ? CASE_SCROLL_SIDE_REVEAL_START : CASE_SCROLL_VERTICAL_REVEAL_START,
             },
+            {
+              opacity: 1,
+              clipPath: 'inset(0% 0% 0% 0%)',
+              clearProps: 'opacity,clipPath',
+            },
+            0,
           )
           const image = isImage ? element.querySelector('.progressive-image, .case-study__video-element') : null
           if (image) reveal.fromTo(image, { scale: CASE_IMAGE_START_SCALE }, { scale: 1, clearProps: 'transform' }, 0)
+          if (!isImage) reveal.fromTo(element,
+            { opacity: CASE_SCROLL_REVEAL_START_OPACITY, y: CASE_SCROLL_REVEAL_START_Y },
+            { opacity: 1, y: 0, clearProps: 'opacity,transform' },
+            0,
+          )
           const caption = isImage ? element.querySelector<HTMLElement>('[data-case-caption]') : null
           if (caption) reveal.fromTo(caption,
-            { opacity: 0, y: 10 },
+            { opacity: CASE_SCROLL_REVEAL_START_OPACITY, y: CASE_CAPTION_START_Y },
             {
               opacity: 1,
               y: 0,

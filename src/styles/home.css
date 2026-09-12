@@ -36,10 +36,17 @@
   position: relative;
   z-index: 2;
   display: inline-block;
-  font-size: var(--type-logo-size);
-  font-weight: var(--type-logo-weight);
-  line-height: var(--type-logo-line-height);
-  letter-spacing: var(--type-logo-letter-spacing);
+  color: var(--color-foreground);
+  transform: translate(0px, 5px);
+}
+
+.home-logo__mark {
+  display: block;
+  width: var(--type-logo-size);
+  height: var(--type-logo-size);
+  background-color: currentColor;
+  -webkit-mask: no-repeat center / contain;
+  mask: no-repeat center / contain;
 }
 
 .menu-toggle {
