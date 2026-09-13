@@ -90,7 +90,7 @@ export function GalleryPage({ collection, items }: GalleryPageProps) {
     title: item.title,
     year: item.date,
     href: `/${collection}/${item.slug}`,
-    gridTooltip: 'VIEW',
+    gridTooltip: item.title,
     listTooltip: 'VIEW',
     cover: {
       src: item.image.thumbnail.src,
