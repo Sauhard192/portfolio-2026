@@ -6,7 +6,7 @@ import { gridLensSourcePoint, gridLensStrength } from './gridLens'
 
 // Distances in CSS pixels. Keep the bend inside the captured strip.
 const PADDING = 32
-const BEND = 20
+const BEND = 30
 const FRINGE = 2
 const BLUR = 2
 const vertexShader = `
@@ -152,7 +152,9 @@ export default function GalleryEdgeLensCanvas({ galleryRef, source, grid = false
 
 function LensScene({ galleryRef, source, grid = false, onReady, onFailure }: Props & { onReady: () => void; onFailure: () => void }) {
   const { size } = useThree()
-  const edge = size.width <= 600 ? 100 : size.width <= 1024 ? 80 : 80
+
+  const edge = size.width <= 600 ? 100 : size.width <= 1024 ? 80 : 100
+
   // Extra rows above/below the viewport supply the curved screen edges.
   const padding = grid ? Math.ceil(size.height * 0.25) : 0
   const band = grid ? size.height / 2 + padding : edge + PADDING
@@ -176,6 +178,7 @@ function LensScene({ galleryRef, source, grid = false, onReady, onFailure }: Pro
     uBackground: { value: new THREE.Color() },
   }), [resources, size.width, size.height, edge, band, grid, padding])
   const targets = useRef<HTMLElement[]>([])
+  const textLayouts = useRef(new WeakMap<HTMLElement, { key: string; lines: string[] }>())
   const lastSignature = useRef('')
   const announced = useRef(false)
   const caseSource = useRef<CaseStudyLensSource | null>(null)
@@ -270,7 +273,8 @@ function LensScene({ galleryRef, source, grid = false, onReady, onFailure }: Pro
               ctx.drawImage(element, (rect.width - w) / 2, (rect.height - h) / 2, w, h)
             }
           } else {
-            const scale = rect.width / Math.max(1, element.offsetWidth)
+            const textWidth = parseFloat(style.width) || element.offsetWidth
+            const scale = rect.width / Math.max(1, textWidth)
             ctx.scale(scale, scale)
             ctx.font = `${style.fontWeight} ${style.fontSize} ${style.fontFamily}`
             ctx.fillStyle = style.color
@@ -281,20 +285,36 @@ function LensScene({ galleryRef, source, grid = false, onReady, onFailure }: Pro
             const descent = metrics.fontBoundingBoxDescent ?? parseFloat(style.fontSize) * 0.2
             const baseline = (lineHeight - ascent - descent) / 2 + ascent
             if (grid) {
-              // Preserve responsive caption wrapping and right-aligned metadata.
-              const lines: string[] = []
-              let line = ''
-              for (const word of (element.textContent ?? '').split(/\s+/)) {
-                const next = line ? `${line} ${word}` : word
-                if (line && style.whiteSpace !== 'nowrap' && ctx.measureText(next).width > element.offsetWidth) {
-                  lines.push(line)
-                  line = word
-                } else line = next
+              // Read real browser line breaks; cache until text or layout changes.
+              const key = [element.textContent, textWidth, style.height, ctx.font,
+                style.letterSpacing, style.whiteSpace, document.fonts.status].join('|')
+              let layout = textLayouts.current.get(element)
+              if (layout?.key !== key) {
+                const lines: string[] = []
+                const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT)
+                const range = document.createRange()
+                let lineTop: number | undefined
+                let node: Node | null
+                while ((node = walker.nextNode())) {
+                  const text = node.textContent ?? ''
+                  for (let index = 0; index < text.length; index++) {
+                    range.setStart(node, index)
+                    range.setEnd(node, index + 1)
+                    const bounds = range.getBoundingClientRect()
+                    if (!bounds.height) continue
+                    if (lineTop === undefined || Math.abs(bounds.top - lineTop) > 1 * scale) {
+                      lines.push('')
+                      lineTop = bounds.top
+                    }
+                    lines[lines.length - 1] += text[index]
+                  }
+                }
+                layout = { key, lines: lines.map(line => line.trim()) }
+                textLayouts.current.set(element, layout)
               }
-              lines.push(line)
               ctx.textAlign = style.textAlign === 'right' ? 'right' : 'left'
-              lines.forEach((text, index) => ctx.fillText(text,
-                ctx.textAlign === 'right' ? element.offsetWidth : 0, baseline + index * lineHeight))
+              layout.lines.forEach((text, index) => ctx.fillText(text,
+                ctx.textAlign === 'right' ? textWidth : 0, baseline + index * lineHeight))
             } else ctx.fillText(element.textContent ?? '', 0, baseline)
           }
           ctx.restore()

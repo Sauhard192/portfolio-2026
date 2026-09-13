@@ -94,7 +94,7 @@
   /* Individual translate stays independent of the entrance animation's y. */
   translate: -50% 0;
   display: grid;
-  gap: var(--space-1);
+  gap: var(--space-0);
   text-align: center;
   overflow-wrap: anywhere;
 }
