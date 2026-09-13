@@ -228,6 +228,8 @@
   fill: var(--color-ink);
 }
 .case-study-page[data-footer-active='true'] .site-cursor { --color-foreground: var(--color-surface); }
+.case-study-page[data-footer-active='true'] .site-cursor__tooltip { color: var(--color-ink); }
+.case-study-page[data-footer-active='true'] .site-cursor__arrow { filter: brightness(0); }
 /* The pinned footer has its own stacking context: leave its progress rail uncovered. */
 .case-study-page[data-footer-active='true'] .gallery-edge-lens {
   clip-path: inset(0 0 0 var(--space-1));

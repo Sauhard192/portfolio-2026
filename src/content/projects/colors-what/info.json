@@ -1,0 +1,63 @@
+{
+  "slug": "colors-what",
+  "title": "Colors What?",
+  "roles": [
+    "Presentation",
+    "Workshop",
+    "Design Study",
+    "Graphic Design"
+  ],
+  "projectType": "Graphic Design",
+  "date": "2023",
+  "labels": {
+    "projectType": "PROJECT TYPE",
+    "date": "YEAR",
+    "description": "DESCRIPTION"
+  },
+  "description": "A knowledge-sharing session exploring the science and perception behind color—why we see it, how light and vision shape our experience of it, and how those ideas connect to practical color theory. The presentation translated these concepts into a design context, covering relationships, contrast, harmony, and the role of color in visual communication.",
+  "hero": "cover.png",
+  "thumbnail": "thumbnail.png",
+
+  "sections": [
+    {
+      "images": [
+        "img1.png"
+      ]
+    },
+    {
+      "images":[
+        "img2.png",
+        "img3.png"
+      ]
+    },
+    {
+      "images":[
+        "img4.png",
+        "img5.png"
+      ]
+    },
+    {
+      "images":[
+        "img6.png"
+      ]
+    },
+    {
+      "images": [
+        "img7.png",
+        "img8.png",
+        "img9.png"
+      ]
+    },
+    {
+      "images":[
+        "img10.png",
+        "img11.png"
+      ]
+    },
+    {
+      "images": [
+        "img12.png"
+      ]
+    }
+  ]
+}

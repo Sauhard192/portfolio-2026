@@ -1,0 +1,61 @@
+{
+  "slug": "visual-rhythm",
+  "title": "Visual Rhythm",
+  "roles": [
+    "Presentation",
+    "Workshop",
+    "Design Study",
+    "Graphic Design"
+  ],
+  "projectType": "Graphic Design",
+  "date": "2023",
+  "labels": {
+    "projectType": "PROJECT TYPE",
+    "date": "YEAR",
+    "description": "DESCRIPTION"
+  },
+  "description": "A workshop and presentation I conducted at my former workplace exploring visual rhythm as a graphic design principle. Using examples from music, repetition, spacing, pattern, and tempo, the session examined how rhythm can shape hierarchy, movement, and pacing within a composition.",
+  "hero": "cover.png",
+  "thumbnail": "thumbnail.png",
+
+  "sections": [
+    {
+      "images": [
+        "img1.png"
+      ]
+    },
+    {
+      "images":[
+        "img2.png",
+        "img3.png"
+      ]
+    },
+    {
+      "title": "Rhythm in Art",
+      "body": "Several artworks were used as visual references to explain how rhythm can appear through repetition, spacing, movement, and composition. By comparing different artistic approaches, I showed how visual rhythm can guide attention and create structure even outside of graphic design."
+    },
+    {
+      "images":[
+        "img4.png",
+        "img5.png"
+      ]
+    },
+    {
+      "images":[
+        "img6.png",
+        "img7.png"
+      ]
+    },
+    {
+      "images": [
+        "img8.png"
+      ]
+    },
+
+    {
+      "images": [
+        "img9.png"
+      ]
+    }
+  ]
+}
