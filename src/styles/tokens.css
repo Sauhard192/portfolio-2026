@@ -258,9 +258,9 @@
     --type-project-title-size: clamp(2.25rem, 11vw, 3.25rem);
 
     --type-card-title-size: var(--font-size-body);
-    --type-card-title-line-height: 0.875rem;
+    --type-card-title-line-height: 1.2rem;
     --type-card-meta-size: var(--font-size-label);
-    --type-card-meta-line-height: 0.875rem;
+    --type-card-meta-line-height: 1.2rem;
 
     --type-contact-heading-size: var(--font-size-display);
     --type-contact-heading-line-height: var(--line-height-display-display);

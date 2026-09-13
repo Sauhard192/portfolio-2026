@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState, type RefObject } from 'react'
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import * as THREE from 'three'
 import { CaseStudyLensSource } from './caseStudyLensSource'
+import { gridLensSourcePoint, gridLensStrength } from './gridLens'
 
 // Distances in CSS pixels. Keep the bend inside the captured strip.
 const PADDING = 32
@@ -20,8 +21,19 @@ const fragmentShader = `
   uniform float uBend;
   uniform float uFringe;
   uniform float uBlur;
+  uniform float uCurve;
+  uniform float uGrid;
+  uniform float uPadding;
+  uniform vec3 uBackground;
   varying vec2 vUv;
   vec3 sampleBand(vec2 p, float bottom) {
+    if (uGrid > 0.0) {
+      vec2 n = p / uScreen * 2.0 - 1.0;
+      p = (n * (1.0 + uCurve * dot(n, n)) + 1.0) * 0.5 * uScreen;
+      if (p.x < 0.0 || p.x > uScreen.x) return uBackground;
+      return texture2D(uSource, vec2(clamp(p.x / uScreen.x, 0.0, 1.0),
+        1.0 - clamp((p.y + uPadding) / (2.0 * uBand), 0.0, 1.0))).rgb;
+    }
     p.x = clamp(p.x, 0.5, uScreen.x - 0.5);
     p.y = clamp(p.y, 0.5, uBand - 0.5);
     return texture2D(uSource, vec2(p.x / uScreen.x,
@@ -31,10 +43,15 @@ const fragmentShader = `
     vec2 pixel = vec2(vUv.x, 1.0 - vUv.y) * uScreen;
     float bottom = step(uScreen.y * 0.5, pixel.y);
     float distanceToEdge = min(pixel.y, uScreen.y - pixel.y);
-    if (distanceToEdge >= uEdge) discard;
+    if (distanceToEdge >= uEdge && uGrid == 0.0) discard;
     float strength = 1.0 - smoothstep(0.0, uEdge, distanceToEdge);
     float direction = mix(1.0, -1.0, bottom);
-    vec2 p = vec2(pixel.x, pixel.y - bottom * (uScreen.y - uBand));
+    vec2 p = uGrid > 0.0 ? pixel : vec2(pixel.x, pixel.y - bottom * (uScreen.y - uBand));
+    if (uGrid > 0.0 && distanceToEdge >= uEdge) {
+      gl_FragColor = vec4(sampleBand(p, bottom), 1.0);
+      #include <colorspace_fragment>
+      return;
+    }
 
     p.y += direction * uBend * pow(strength, 4.0);
 
@@ -53,30 +70,92 @@ const fragmentShader = `
     sampleBand(p - blur, bottom) * 0.10;
 
     vec3 split = vec3(sampleBand(p + fringe, bottom).r, center.g, sampleBand(p - fringe, bottom).b);
-    gl_FragColor = vec4(mix(center, split, 0.65), smoothstep(0.0, 0.15, strength));
+    gl_FragColor = vec4(mix(center, split, 0.65), uGrid > 0.0 ? 1.0 : smoothstep(0.0, 0.15, strength));
     #include <colorspace_fragment>
   }
 `
 
-type Props = { galleryRef: RefObject<HTMLElement | null>; source?: 'gallery' | 'case-study' }
+type Props = { galleryRef: RefObject<HTMLElement | null>; source?: 'gallery' | 'case-study'; grid?: boolean }
 
-export default function GalleryEdgeLensCanvas({ galleryRef, source }: Props) {
+export default function GalleryEdgeLensCanvas({ galleryRef, source, grid = false }: Props) {
   const [failed, setFailed] = useState(false)
   const [ready, setReady] = useState(false)
+  const hitRef = useRef<HTMLAnchorElement>(null)
+  const hovered = useRef<HTMLElement | null>(null)
+  const pointer = useRef<{ x: number; y: number } | null>(null)
+  const resolveHit = (x: number, y: number) => {
+    pointer.current = { x, y }
+    const point = gridLensSourcePoint(x, y, innerWidth, innerHeight)
+    const cards = galleryRef.current?.querySelectorAll<HTMLElement>('.project-card') ?? []
+    const card = Array.from(cards).find(item => {
+      const r = item.getBoundingClientRect()
+      return point.x >= r.left && point.x <= r.right && point.y >= r.top && point.y <= r.bottom
+    }) ?? null
+    const changed = hovered.current !== card
+    if (changed) {
+      hovered.current?.removeAttribute('data-lens-hover')
+      card?.setAttribute('data-lens-hover', 'true')
+      hovered.current = card
+    }
+    const hit = hitRef.current
+    const link = card?.querySelector<HTMLAnchorElement>('.project-card__link')
+    if (hit) {
+      if (link) hit.href = link.href
+      else hit.removeAttribute('href')
+      hit.dataset.cursor = card ? 'project' : 'dot'
+      hit.dataset.tooltip = card?.dataset.tooltip ?? ''
+      hit.dataset.year = card?.dataset.year ?? ''
+      if (changed) hit.dispatchEvent(new PointerEvent('pointerover', { bubbles: true }))
+    }
+    return card
+  }
+  useEffect(() => () => { hovered.current?.removeAttribute('data-lens-hover') }, [])
+  useEffect(() => {
+    if (!grid || !ready || failed) return
+    let frame = 0
+    const update = () => {
+      cancelAnimationFrame(frame)
+      frame = requestAnimationFrame(() => {
+        if (pointer.current) resolveHit(pointer.current.x, pointer.current.y)
+      })
+    }
+    window.addEventListener('scroll', update, { passive: true })
+    return () => { window.removeEventListener('scroll', update); cancelAnimationFrame(frame) }
+  }, [grid, ready, failed])
+  useEffect(() => {
+    const gallery = galleryRef.current
+    if (!gallery || !grid || !ready || failed) return
+    gallery.dataset.gridLens = 'true'
+    return () => { delete gallery.dataset.gridLens }
+  }, [galleryRef, grid, ready, failed])
   if (failed) return null
   return <div className="gallery-edge-lens" aria-hidden="true" data-ready={ready}>
     <Canvas dpr={[1, 1.5]} gl={{ alpha: true, antialias: false }} fallback={<span />} onCreated={({ gl }) => {
       gl.domElement.addEventListener('webglcontextlost', () => setFailed(true), { once: true })
     }}>
-      <LensScene galleryRef={galleryRef} source={source} onReady={() => setReady(true)} onFailure={() => setFailed(true)} />
+      <LensScene galleryRef={galleryRef} source={source} grid={grid} onReady={() => setReady(true)} onFailure={() => setFailed(true)} />
     </Canvas>
+    {grid && ready && <a ref={hitRef} className="grid-lens-hit" tabIndex={-1}
+      onPointerMove={event => resolveHit(event.clientX, event.clientY)}
+      onPointerDown={event => resolveHit(event.clientX, event.clientY)}
+      onPointerLeave={() => { pointer.current = null; hovered.current?.removeAttribute('data-lens-hover'); hovered.current = null }}
+      onClick={event => {
+        const card = resolveHit(event.clientX, event.clientY)
+        if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
+        event.preventDefault()
+        const retry = card?.querySelector<HTMLButtonElement>('.image-error button')
+        if (retry) retry.click()
+        else card?.querySelector<HTMLAnchorElement>('.project-card__link')?.click()
+      }} />}
   </div>
 }
 
-function LensScene({ galleryRef, source, onReady, onFailure }: Props & { onReady: () => void; onFailure: () => void }) {
+function LensScene({ galleryRef, source, grid = false, onReady, onFailure }: Props & { onReady: () => void; onFailure: () => void }) {
   const { size } = useThree()
   const edge = size.width <= 600 ? 100 : size.width <= 1024 ? 80 : 80
-  const band = edge + PADDING
+  // Extra rows above/below the viewport supply the curved screen edges.
+  const padding = grid ? Math.ceil(size.height * 0.25) : 0
+  const band = grid ? size.height / 2 + padding : edge + PADDING
   const dpr = Math.min(devicePixelRatio, 1.5)
   const resources = useMemo(() => {
     const canvas = document.createElement('canvas')
@@ -93,7 +172,9 @@ function LensScene({ galleryRef, source, onReady, onFailure }: Props & { onReady
     uSource: { value: resources.texture }, uScreen: { value: new THREE.Vector2(size.width, size.height) },
     uEdge: { value: edge }, uBand: { value: band }, uBend: { value: BEND },
     uFringe: { value: FRINGE }, uBlur: { value: BLUR },
-  }), [resources, size.width, size.height, edge, band])
+    uCurve: { value: grid ? gridLensStrength(size.width) : 0 }, uGrid: { value: grid ? 1 : 0 }, uPadding: { value: padding },
+    uBackground: { value: new THREE.Color() },
+  }), [resources, size.width, size.height, edge, band, grid, padding])
   const targets = useRef<HTMLElement[]>([])
   const lastSignature = useRef('')
   const announced = useRef(false)
@@ -103,14 +184,16 @@ function LensScene({ galleryRef, source, onReady, onFailure }: Props & { onReady
     if (!gallery) return
     const collect = () => {
       if (source === 'case-study') caseSource.current = new CaseStudyLensSource(gallery)
-      targets.current = Array.from(gallery.querySelectorAll<HTMLElement>('.project-card img, .project-list-item .scramble-text__visual, .project-list-preview img'))
+      targets.current = Array.from(gallery.querySelectorAll<HTMLElement>(grid
+        ? '.project-card .image-skeleton, .project-card img, .project-card__touch-meta > span, .project-card .image-error > span, .project-card .image-error button'
+        : '.project-card img, .project-list-item .scramble-text__visual, .project-list-preview img'))
       lastSignature.current = ''
     }
     collect()
     const observer = new MutationObserver(collect)
     observer.observe(gallery, { childList: true, subtree: true })
     return () => { observer.disconnect(); resources.texture.dispose() }
-  }, [galleryRef, resources, source])
+  }, [galleryRef, resources, source, grid])
 
   useFrame(() => {
     if (document.hidden || !galleryRef.current) return
@@ -127,9 +210,11 @@ function LensScene({ galleryRef, source, onReady, onFailure }: Props & { onReady
     const gallery = galleryRef.current
     const page = gallery.closest('.portfolio-background')!
     const pageStyle = getComputedStyle(page)
+    uniforms.uBackground.value.set(pageStyle.backgroundColor)
     const records = targets.current.flatMap(element => {
       const rect = element.getBoundingClientRect()
-      if (rect.bottom < 0 || rect.top > size.height || (rect.top > band && rect.bottom < size.height - band)) return []
+      if (!rect.width || !rect.height || rect.bottom < -padding || rect.top > size.height + padding
+        || (!grid && rect.top > band && rect.bottom < size.height - band)) return []
       const style = getComputedStyle(element)
       let opacity = Number(style.opacity)
       let parent = element.parentElement
@@ -139,32 +224,45 @@ function LensScene({ galleryRef, source, onReady, onFailure }: Props & { onReady
       }
       return [{ element, rect, style, opacity }]
     })
-    const signature = `${size.width},${size.height},${pageStyle.backgroundColor}|` + records.map(({ element, rect, style, opacity }) =>
+    const loading = grid && records.some(({ element, opacity }) => element.classList.contains('image-skeleton') && opacity > 0)
+    const signature = `${loading ? Math.floor(performance.now() / 32) : ''},${size.width},${size.height},${pageStyle.backgroundColor}|` + records.map(({ element, rect, style, opacity }) =>
       `${rect.x.toFixed(2)},${rect.y.toFixed(2)},${rect.width.toFixed(2)},${rect.height.toFixed(2)},${opacity.toFixed(3)},${style.color},${element instanceof HTMLImageElement ? element.currentSrc + element.complete : element.textContent}`,
     ).join('|')
     if (signature === lastSignature.current) return
     lastSignature.current = signature
     const { context: ctx, texture } = resources
     try {
-      for (let bottom = 0; bottom < 2; bottom++) {
-        const origin = bottom ? size.height - band : 0
+      // Paint the grid in one pass: fractional strip clips leave an antialiased seam.
+      const captureHeight = grid ? band * 2 : band
+      for (let bottom = 0; bottom < (grid ? 1 : 2); bottom++) {
+        const origin = grid ? -padding : bottom ? size.height - band : 0
         ctx.save()
         ctx.setTransform(dpr, 0, 0, dpr, 0, bottom * band * dpr)
-        ctx.beginPath(); ctx.rect(0, 0, size.width, band); ctx.clip()
+        ctx.beginPath(); ctx.rect(0, 0, size.width, captureHeight); ctx.clip()
         ctx.fillStyle = pageStyle.backgroundColor
-        ctx.fillRect(0, 0, size.width, band)
+        ctx.fillRect(0, 0, size.width, captureHeight)
         // Match the portfolio's existing vertical background guides.
         if (pageStyle.backgroundImage !== 'none') {
           const step = size.width / (size.width <= 640 ? 8 : 24)
           ctx.fillStyle = pageStyle.getPropertyValue('--color-grid-line')
-          for (let x = step - 1; x < size.width; x += step) ctx.fillRect(x, 0, 1, band)
+          for (let x = step - 1; x < size.width; x += step) ctx.fillRect(x, 0, 1, captureHeight)
         }
         for (const { element, rect, style, opacity } of records) {
-          if (rect.bottom < origin || rect.top > origin + band || opacity <= 0) continue
+          if (rect.bottom < origin || rect.top > origin + captureHeight || opacity <= 0) continue
           ctx.save()
           ctx.globalAlpha = opacity
           ctx.translate(rect.x, rect.y - origin)
-          if (element instanceof HTMLImageElement) {
+          if (element.classList.contains('image-skeleton')) {
+            ctx.fillStyle = style.backgroundColor
+            ctx.fillRect(0, 0, rect.width, rect.height)
+            const sweep = (performance.now() % 1600) / 1600 * rect.width * 3 - rect.width
+            const gradient = ctx.createLinearGradient(sweep - rect.width / 2, 0, sweep + rect.width / 2, 0)
+            gradient.addColorStop(0, style.backgroundColor)
+            gradient.addColorStop(0.5, pageStyle.getPropertyValue('--image-skeleton-highlight').trim())
+            gradient.addColorStop(1, style.backgroundColor)
+            ctx.fillStyle = gradient
+            ctx.fillRect(0, 0, rect.width, rect.height)
+          } else if (element instanceof HTMLImageElement) {
             if (element.complete && element.naturalWidth) {
               const scale = Math.max(rect.width / element.naturalWidth, rect.height / element.naturalHeight)
               const w = element.naturalWidth * scale, h = element.naturalHeight * scale
@@ -181,7 +279,23 @@ function LensScene({ galleryRef, source, onReady, onFailure }: Props & { onReady
             const lineHeight = parseFloat(style.lineHeight) || parseFloat(style.fontSize) * 1.2
             const ascent = metrics.fontBoundingBoxAscent ?? parseFloat(style.fontSize) * 0.8
             const descent = metrics.fontBoundingBoxDescent ?? parseFloat(style.fontSize) * 0.2
-            ctx.fillText(element.textContent ?? '', 0, (lineHeight - ascent - descent) / 2 + ascent)
+            const baseline = (lineHeight - ascent - descent) / 2 + ascent
+            if (grid) {
+              // Preserve responsive caption wrapping and right-aligned metadata.
+              const lines: string[] = []
+              let line = ''
+              for (const word of (element.textContent ?? '').split(/\s+/)) {
+                const next = line ? `${line} ${word}` : word
+                if (line && style.whiteSpace !== 'nowrap' && ctx.measureText(next).width > element.offsetWidth) {
+                  lines.push(line)
+                  line = word
+                } else line = next
+              }
+              lines.push(line)
+              ctx.textAlign = style.textAlign === 'right' ? 'right' : 'left'
+              lines.forEach((text, index) => ctx.fillText(text,
+                ctx.textAlign === 'right' ? element.offsetWidth : 0, baseline + index * lineHeight))
+            } else ctx.fillText(element.textContent ?? '', 0, baseline)
           }
           ctx.restore()
         }

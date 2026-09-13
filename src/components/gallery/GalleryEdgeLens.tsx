@@ -8,8 +8,8 @@ class LensFallback extends Component<{ children: ReactNode }, { failed: boolean 
   render() { return this.state.failed ? null : this.props.children }
 }
 
-export function GalleryEdgeLens({ galleryRef, source = 'gallery' }: {
-  galleryRef: RefObject<HTMLElement | null>; source?: 'gallery' | 'case-study'
+export function GalleryEdgeLens({ galleryRef, source = 'gallery', grid = false }: {
+  galleryRef: RefObject<HTMLElement | null>; source?: 'gallery' | 'case-study'; grid?: boolean
 }) {
   const [enabled, setEnabled] = useState(false)
   useEffect(() => {
@@ -20,6 +20,6 @@ export function GalleryEdgeLens({ galleryRef, source = 'gallery' }: {
     return () => preference.removeEventListener('change', update)
   }, [])
   return enabled ? <LensFallback><Suspense fallback={null}>
-    <EdgeLensCanvas galleryRef={galleryRef} source={source} />
+    <EdgeLensCanvas galleryRef={galleryRef} source={source} grid={grid} />
   </Suspense></LensFallback> : null
 }

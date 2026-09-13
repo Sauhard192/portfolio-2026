@@ -336,7 +336,7 @@ export function InfiniteProjectGallery({
           </div>
         )}
       </div>
-      <GalleryEdgeLens galleryRef={galleryRef} />
+      <GalleryEdgeLens key={view} galleryRef={galleryRef} grid={view === 'grid'} />
     </div>
   )
 }

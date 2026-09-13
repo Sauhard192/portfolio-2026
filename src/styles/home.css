@@ -15,6 +15,12 @@
 .gallery-edge-lens * { 
   pointer-events: none !important;
 }
+.gallery-edge-lens .grid-lens-hit {
+  position: absolute;
+  inset: 0;
+  pointer-events: auto !important;
+  cursor: default;
+}
 
 .home-header {
   position: fixed;
@@ -229,7 +235,8 @@
   transition: scale var(--duration-ui) var(--ease-out), filter var(--duration-ui) ease;
 }
 
-.project-card:hover,
+.project-gallery:not([data-grid-lens]) .project-card:hover,
+.project-card[data-lens-hover='true'],
 .project-card:focus-within {
   z-index: 2;
   filter: saturate(1.08);
