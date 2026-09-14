@@ -3,6 +3,7 @@ import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import * as THREE from 'three'
 import { CaseStudyLensSource } from './caseStudyLensSource'
 import { gridLensSourcePoint, gridLensStrength } from './gridLens'
+import { paintBackgroundGrid } from './paintBackgroundGrid'
 
 // Distances in CSS pixels. Keep the bend inside the captured strip.
 const PADDING = 32
@@ -245,11 +246,7 @@ function LensScene({ galleryRef, source, grid = false, onReady, onFailure }: Pro
         ctx.fillStyle = pageStyle.backgroundColor
         ctx.fillRect(0, 0, size.width, captureHeight)
         // Match the portfolio's existing vertical background guides.
-        if (pageStyle.backgroundImage !== 'none') {
-          const step = size.width / (size.width <= 640 ? 8 : 24)
-          ctx.fillStyle = pageStyle.getPropertyValue('--color-grid-line')
-          for (let x = step - 1; x < size.width; x += step) ctx.fillRect(x, 0, 1, captureHeight)
-        }
+        paintBackgroundGrid(ctx, pageStyle, size.width, captureHeight)
         for (const { element, rect, style, opacity } of records) {
           if (rect.bottom < origin || rect.top > origin + captureHeight || opacity <= 0) continue
           ctx.save()

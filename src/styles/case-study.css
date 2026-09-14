@@ -250,6 +250,10 @@
     margin-bottom: var(--space-1);
   }
 
+  .case-study__metadata dl {
+  gap: 1rem;
+  }
+
   .case-study__intro h1:focus { outline: none; }
     .case-study__intro-bottom {
       margin-top: var(--space-4);

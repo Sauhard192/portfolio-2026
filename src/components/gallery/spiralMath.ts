@@ -2,7 +2,7 @@ import * as THREE from 'three'
 
 // Scroll tuning: repeated inputs build speed; ~99% settles within one second.
 export const SCROLL_MOTION = {
-  sensitivity: 0.001,
+  sensitivity: 0.0015,
   inputKick: 0.01,
   frequencyBoost: 2,
   maxSpeed: 2,

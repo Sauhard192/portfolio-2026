@@ -40,10 +40,18 @@ export function MediaViewer({ collection, items, slug }: MediaViewerProps) {
     instant(direction)
   }
   useEffect(() => {
-    if (!canNavigate) return
     const keydown = (event: KeyboardEvent) => {
       if (event.defaultPrevented || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return
       if (event.target instanceof Element && event.target.closest('input, textarea, select, [contenteditable="true"], [role="slider"]')) return
+      if (event.key === 'Escape') {
+        if (event.repeat) return
+        event.preventDefault()
+        drag.reset()
+        // The gallery already remembers its view and position in this session.
+        navigate(`/${collection}`)
+        return
+      }
+      if (!canNavigate) return
       if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return
       event.preventDefault()
       instant(event.key === 'ArrowRight' ? 1 : -1)

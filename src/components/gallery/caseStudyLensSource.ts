@@ -1,3 +1,5 @@
+import { paintBackgroundGrid } from './paintBackgroundGrid'
+
 // Rasterize only the two edge strips. The shared WebGL shader stays unchanged.
 // This adapter supports the case-study renderer's text, images, and inset reveals.
 type Box = { x: number; y: number; width: number; height: number }
@@ -68,11 +70,7 @@ export class CaseStudyLensSource {
       ctx.beginPath(); ctx.rect(0, 0, width, band); ctx.clip()
       ctx.fillStyle = pageStyle.backgroundColor
       ctx.fillRect(0, 0, width, band)
-      if (pageStyle.backgroundImage !== 'none') {
-        ctx.fillStyle = pageStyle.getPropertyValue('--color-grid-line')
-        const step = width / (width <= 640 ? 8 : 24)
-        for (let x = step - 1; x < width; x += step) ctx.fillRect(x, 0, 1, band)
-      }
+      paintBackgroundGrid(ctx, pageStyle, width, band)
       ctx.translate(0, -origin)
       for (const record of records) {
         if (!intersects(record.rect, origin, band)) continue

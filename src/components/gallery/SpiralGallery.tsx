@@ -111,7 +111,7 @@ export default function SpiralGallery({ collection, items }: SpiralGalleryProps)
       if (!dragging) return
       const delta = lastPointerY - event.clientY
       lastPointerY = event.clientY
-      addVelocity(delta * 1.2)
+      addVelocity(delta * 1.8)
     }
 
     const handlePointerUp = () => {

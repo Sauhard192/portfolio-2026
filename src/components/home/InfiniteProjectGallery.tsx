@@ -124,7 +124,7 @@ export function InfiniteProjectGallery({
     window.history.scrollRestoration = 'manual'
     const lenis = new Lenis({
       autoRaf: true,
-      duration: reducedMotion ? 0 : 0.35,
+      duration: reducedMotion ? 0 : 0.5,
       easing: (progress) => 1 - Math.pow(1 - progress, 4),
       infinite: false,
       overscroll: false,

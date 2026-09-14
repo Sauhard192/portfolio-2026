@@ -1,6 +1,7 @@
 import { useEffect, useRef, type RefObject } from 'react'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
+import Lenis from 'lenis'
 import { footerProgress, NEXT_PROJECT_SCROLL_SCREENS } from '../components/case-study/caseStudyNavigation'
 import { CASE_CONTENT_READY_EVENT } from '../components/case-study/revealOwnership'
 import {
@@ -53,6 +54,31 @@ export function useCaseStudyScroll(
     for (const event of ['wheel', 'touchmove', 'keydown']) window.addEventListener(event, noteInput, { passive: true })
 
     media.add('(prefers-reduced-motion: no-preference)', () => {
+      const lenis = new Lenis({
+        autoRaf: true,
+        duration: 0.35,
+        easing: (progress) => 1 - Math.pow(1 - progress, 4),
+        infinite: false,
+        overscroll: false,
+        smoothWheel: true,
+        syncTouch: true,
+        wheelMultiplier: 0.85,
+      })
+      if (import.meta.env.DEV) Object.assign(window, { __lenis: lenis })
+      lenis.on('scroll', ScrollTrigger.update)
+      const resizeLenis = () => lenis.resize()
+      ScrollTrigger.addEventListener('refresh', resizeLenis)
+      // Stop pending inertia as well as new input while any shared lock is held.
+      const syncScrollLock = () => {
+        if (document.documentElement.dataset.pageScrollLocked) lenis.stop()
+        else lenis.start()
+      }
+      const lockObserver = new MutationObserver(syncScrollLock)
+      lockObserver.observe(document.documentElement, {
+        attributes: true,
+        attributeFilter: ['data-page-scroll-locked'],
+      })
+      syncScrollLock()
       let navigating = false
       let lastProgress = 0
       let revealsInitialized = false
@@ -191,6 +217,11 @@ export function useCaseStudyScroll(
       footerEntrance.fromTo(details, { opacity: 0 },
         { opacity: 1, duration: 0.55, stagger: 0.1, clearProps: 'opacity' })
       return () => {
+        lockObserver.disconnect()
+        ScrollTrigger.removeEventListener('refresh', resizeLenis)
+        lenis.off('scroll', ScrollTrigger.update)
+        lenis.destroy()
+        if (import.meta.env.DEV) Reflect.deleteProperty(window, '__lenis')
         page.removeEventListener(CASE_CONTENT_READY_EVENT, setupCaseReveals)
         caseReveals.forEach((reveal) => {
           reveal.scrollTrigger?.kill()

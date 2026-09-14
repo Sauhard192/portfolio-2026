@@ -76,24 +76,30 @@ small,
 }
 
 .portfolio-background {
+  --background-columns: 12;
+  --background-column-gap: var(--space-4);
+  --background-column-step: calc((100% + var(--background-column-gap)) / var(--background-columns));
   background-color: var(--color-surface);
   background-image: repeating-linear-gradient(
     90deg,
-    transparent 0,
-    transparent calc(4.1667vw - 1px),
-    var(--color-grid-line) calc(4.1667vw - 1px),
-    var(--color-grid-line) 4.1667vw
+    var(--color-grid-line) 0 1px,
+    transparent 1px calc(var(--background-column-step) - var(--background-column-gap) - 1px),
+    var(--color-grid-line) calc(var(--background-column-step) - var(--background-column-gap) - 1px) calc(var(--background-column-step) - var(--background-column-gap)),
+    transparent calc(var(--background-column-step) - var(--background-column-gap)) var(--background-column-step)
   );
+  background-size: calc(100% - 2 * var(--layout-gutter)) 100%;
+  background-position: center top;
+  background-repeat: no-repeat;
 }
 
-@media (max-width: 640px) {
+@media (max-width: 1024px) {
   .portfolio-background {
-    background-image: repeating-linear-gradient(
-      90deg,
-      transparent 0,
-      transparent calc(12.5vw - 1px),
-      var(--color-grid-line) calc(12.5vw - 1px),
-      var(--color-grid-line) 12.5vw
-    );
+    --background-columns: 8;
+  }
+}
+
+@media (max-width: 600px) {
+  .portfolio-background {
+    --background-columns: 4;
   }
 }
