@@ -2,7 +2,7 @@ import { useEffect, useRef, type RefObject } from 'react'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import Lenis from 'lenis'
-import { footerProgress, NEXT_PROJECT_SCROLL_SCREENS } from '../components/case-study/caseStudyNavigation'
+import { footerEndpoint, footerProgress, NEXT_PROJECT_SCROLL_SCREENS } from '../components/case-study/caseStudyNavigation'
 import { CASE_CONTENT_READY_EVENT } from '../components/case-study/revealOwnership'
 import {
   CASE_CAPTION_REVEAL_DELAY,
@@ -43,14 +43,35 @@ export function useCaseStudyScroll(
     let disposed = false
     let navigationFrame = 0
     let lastInput = -Infinity
+    let tryComplete = () => {}
+    let touchPosition: { x: number; y: number } | null = null
+    const touchStart = (event: TouchEvent) => {
+      const touch = event.touches.length === 1 ? event.touches[0] : null
+      touchPosition = touch ? { x: touch.clientX, y: touch.clientY } : null
+    }
     const resetInput = () => { lastInput = -Infinity }
     ScrollTrigger.addEventListener('refreshInit', resetInput)
     const noteInput = (event: Event) => {
-      if (event instanceof WheelEvent && (event.ctrlKey || Math.abs(event.deltaY) <= Math.abs(event.deltaX))) return
-      if (event instanceof KeyboardEvent && !['ArrowDown', 'ArrowUp', 'PageDown', 'PageUp', 'End', 'Home', ' '].includes(event.key)) return
-      if (document.documentElement.dataset.routeScrollLocked) return
+      let forward = false
+      if (event instanceof WheelEvent) {
+        forward = !event.ctrlKey && event.deltaY > Math.abs(event.deltaX)
+      } else if (typeof TouchEvent !== 'undefined' && event instanceof TouchEvent) {
+        const touch = event.touches.length === 1 ? event.touches[0] : null
+        if (touch && touchPosition) {
+          forward = touchPosition.y - touch.clientY > Math.abs(touchPosition.x - touch.clientX)
+        }
+        touchPosition = touch ? { x: touch.clientX, y: touch.clientY } : null
+      } else if (event instanceof KeyboardEvent) {
+        if (event.target instanceof Element && event.target.closest('input, textarea, select, [contenteditable], button, a')) return
+        forward = !event.altKey && !event.ctrlKey && !event.metaKey && !event.shiftKey &&
+          ['ArrowDown', 'PageDown', 'End', ' '].includes(event.key)
+      }
+      if (!forward || document.documentElement.dataset.pageScrollLocked) { resetInput(); return }
       lastInput = performance.now()
+      // At the scroll limit there may be no new ScrollTrigger update.
+      tryComplete()
     }
+    window.addEventListener('touchstart', touchStart, { passive: true })
     for (const event of ['wheel', 'touchmove', 'keydown']) window.addEventListener(event, noteInput, { passive: true })
 
     media.add('(prefers-reduced-motion: no-preference)', () => {
@@ -80,33 +101,41 @@ export function useCaseStudyScroll(
       })
       syncScrollLock()
       let navigating = false
-      let lastProgress = 0
       let revealsInitialized = false
       const caseReveals: gsap.core.Timeline[] = []
+      // Read live limits: mobile browser chrome can change the reachable bottom.
+      const reachableEnd = (intendedEnd: number) => footerEndpoint(intendedEnd,
+        document.documentElement.scrollHeight - document.documentElement.clientHeight, lenis.limit)
+      const currentProgress = (trigger: ScrollTrigger) => {
+        const end = reachableEnd(trigger.end)
+        return end > trigger.start ? footerProgress(trigger.scroll(), trigger.start, end - trigger.start) : 0
+      }
       const pin = ScrollTrigger.create({
         id: 'next-project', trigger: footer, start: 'top top',
         end: () => `+=${footer.offsetHeight * NEXT_PROJECT_SCROLL_SCREENS}`,
         pin: true, pinSpacing: true, invalidateOnRefresh: true,
         onUpdate: (self) => {
-          const value = footerProgress(self.scroll(), self.start, self.end - self.start)
+          const value = currentProgress(self)
           fill.style.transform = `scaleY(${value})`
           progress.setAttribute('aria-valuenow', String(Math.round(value * 100)))
           progress.dataset.active = String(value > 0)
-          // Resizes, font loading, and history restoration must not navigate.
-          const userScrolling = performance.now() - lastInput < 1200
-          if (value >= 1 && lastProgress < 1 && self.direction > 0 && userScrolling &&
-              !document.documentElement.dataset.routeScrollLocked && !navigating) {
-            navigating = true
-            // Paint the full bar before starting the existing route transition.
-            navigationFrame = requestAnimationFrame(() => {
-              if (disposed) return
-              if (footerProgress(pin.scroll(), pin.start, pin.end - pin.start) < 1) { navigating = false; return }
-              completeRef.current()
-            })
-          }
-          lastProgress = value
+          if (value >= 1 && self.direction > 0) tryComplete()
         },
       })
+      const canComplete = () => !disposed && performance.now() - lastInput < 1200 &&
+        !document.documentElement.dataset.pageScrollLocked &&
+        currentProgress(pin) >= 1
+      tryComplete = () => {
+        if (navigating || !canComplete()) return
+        navigating = true
+        // Paint the full bar, then recheck in case a resize or reverse swipe intervened.
+        navigationFrame = requestAnimationFrame(() => {
+          if (!canComplete()) { navigating = false; return }
+          fill.style.transform = 'scaleY(1)'
+          progress.setAttribute('aria-valuenow', '100')
+          completeRef.current()
+        })
+      }
 
       const setupCaseReveals = () => {
         if (revealsInitialized) return
@@ -217,6 +246,7 @@ export function useCaseStudyScroll(
       footerEntrance.fromTo(details, { opacity: 0 },
         { opacity: 1, duration: 0.55, stagger: 0.1, clearProps: 'opacity' })
       return () => {
+        tryComplete = () => {}
         lockObserver.disconnect()
         ScrollTrigger.removeEventListener('refresh', resizeLenis)
         lenis.off('scroll', ScrollTrigger.update)
@@ -244,6 +274,7 @@ export function useCaseStudyScroll(
       cancelAnimationFrame(frame)
       cancelAnimationFrame(navigationFrame)
       for (const event of ['wheel', 'touchmove', 'keydown']) window.removeEventListener(event, noteInput)
+      window.removeEventListener('touchstart', touchStart)
       media.revert()
       ScrollTrigger.removeEventListener('refreshInit', resetInput)
       theme.kill()
