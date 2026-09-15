@@ -80,11 +80,11 @@
   --type-project-title-line-height: var(--line-height-display);
   --type-project-title-letter-spacing: var(--letter-spacing-display);
 
-  --type-tooltip-title-size: var(--font-size-body);;
+  --type-tooltip-title-size: var(--font-size-label);;
   --type-tooltip-title-weight: var(--font-weight-semibold);
   --type-tooltip-title-line-height: var(--line-height-label);
 
-  --type-tooltip-meta-size: var(--font-size-label);
+  --type-tooltip-meta-size: var(--font-size-caption);
   --type-tooltip-meta-line-height: 1rem;
   
   --type-card-title-size: var(--font-size-body);
@@ -149,7 +149,8 @@
   --header-block-offset: 1.5rem;
   --gallery-columns: 4;
   --gallery-max-width: 107.5rem;
-  --gallery-inline-margin: clamp(8rem, 9.5vw, 12rem);
+  /* --gallery-inline-margin: clamp(8rem, 9.5vw, 12rem); */
+  --gallery-inline-margin: clamp(12rem, 12vw, 16rem);
   --gallery-column-gap: 2rem; /* Fixed desktop column gap. */
   --gallery-top-space: 13.75rem;
   --gallery-row-gap: 8rem;
