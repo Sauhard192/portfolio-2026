@@ -190,7 +190,7 @@ function LensScene({ galleryRef, source, grid = false, onReady, onFailure }: Pro
       if (source === 'case-study') caseSource.current = new CaseStudyLensSource(gallery)
       targets.current = Array.from(gallery.querySelectorAll<HTMLElement>(grid
         ? '.project-card .image-skeleton, .project-card img, .project-card__touch-meta > span, .project-card .image-error > span, .project-card .image-error button'
-        : '.project-card img, .project-list-item .scramble-text__visual, .project-list-preview img'))
+        : '.project-card img, .project-list-item__title, .project-list-preview img'))
       lastSignature.current = ''
     }
     collect()
