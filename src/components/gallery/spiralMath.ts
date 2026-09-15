@@ -9,6 +9,7 @@ export const SCROLL_MOTION = {
   deceleration: 4.6,
   radiusFirstInput: 0.85,
   radiusDecay: 3,
+  radiusHoldMs: 140, // Bridge small gaps between inputs before returning.
 } as const
 
 // Fixed world-unit proportions per breakpoint; edgePadding is CSS pixels.
@@ -77,15 +78,20 @@ export function applyScrollInput(state: ScrollMotion, delta: number, now: number
   )
   // Radius follows the latest direction, independent of accumulated rotation.
   // Subpixel wheel tails taper off instead of repeatedly retriggering full strength.
-  state.radiusDrive = direction * Math.min(magnitude / 3, 1)
+  const radiusInput = direction * Math.min(magnitude / 3, 1)
     * Math.max(SCROLL_MOTION.radiusFirstInput, Math.min(magnitude / 70 + state.cadence * 0.25, 1))
+  // Keep a steady envelope during one gesture; reversals still respond immediately.
+  state.radiusDrive = direction === Math.sign(state.radiusDrive) && gap <= SCROLL_MOTION.radiusHoldMs
+    ? direction * Math.max(Math.abs(state.radiusDrive), Math.abs(radiusInput))
+    : radiusInput
   state.lastInputTime = now
   state.lastInputDirection = direction
 }
 
-export function decayScrollMotion(state: ScrollMotion, seconds: number) {
+export function decayScrollMotion(state: ScrollMotion, seconds: number, now = performance.now()) {
   state.velocity *= Math.exp(-SCROLL_MOTION.deceleration * seconds)
-  state.radiusDrive *= Math.exp(-SCROLL_MOTION.radiusDecay * seconds)
+  const releaseSeconds = Math.min(seconds, Math.max(0, (now - state.lastInputTime - SCROLL_MOTION.radiusHoldMs) / 1000))
+  state.radiusDrive *= Math.exp(-SCROLL_MOTION.radiusDecay * releaseSeconds)
 }
 
 export const wrapPhase = (phase: number) => ((phase + 0.5) % 1 + 1) % 1 - 0.5

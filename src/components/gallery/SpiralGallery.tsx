@@ -40,7 +40,7 @@ const IDLE_ROTATION_SECONDS = 55
 const SCROLL_PATH_SPEED = 0.42
 const FULL_EFFECT_SPEED = 0.8
 const RADIUS_SCROLL_RANGE = 0.1 // Up: up to +10%; down: up to -10%.
-const RADIUS_RESPONSE = 30 // Fast response from the first scroll input.
+const RADIUS_RESPONSE = 10 // Fast response from the first scroll input.
 const RADIUS_RETURN = 20 // Higher = quicker settling; no waiting timer.
 const CAMERA_DISTANCE = 8
 const CAMERA_FOV = 42
