@@ -439,10 +439,6 @@
   gap: var(--space-0);
 }
 
-.site-cursor__tooltip > span:last-child:has(small:not(:empty)) {
-  transform: translateY(-2px);
-}
-
 .site-cursor__tooltip strong {
   font-size: var(--type-tooltip-title-size);
   font-weight: var(--type-tooltip-title-weight);
