@@ -282,6 +282,7 @@
     --contact-link-icon-size: 1.125rem;
    
    
-    --case-image-gap: var(--space-10)
+    --case-image-gap: var(--space-8);
+    --case-section-gap: var(--space-8);
   }
 }

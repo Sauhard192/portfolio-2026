@@ -82,7 +82,8 @@ export function useCaseStudyScroll(
         infinite: false,
         overscroll: false,
         smoothWheel: true,
-        syncTouch: true,
+        // Native touch scrolling and momentum; keep desktop wheel smoothing.
+        syncTouch: false,
         wheelMultiplier: 0.85,
       })
       if (import.meta.env.DEV) Object.assign(window, { __lenis: lenis })
