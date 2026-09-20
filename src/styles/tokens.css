@@ -126,7 +126,7 @@
   --type-case-next-size: var(--font-size-heading);
   --case-intro-offset: clamp(10rem, 12.5vw, 15rem);
   --case-section-gap: var(--space-12);
-  --case-image-gap: var(--space-5);
+  --case-image-gap: var(--space-4);
   --case-footer-background: var(--color-foreground);
   --case-footer-foreground: var(--color-surface);
 
