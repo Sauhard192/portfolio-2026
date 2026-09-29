@@ -196,6 +196,14 @@ export function SiteHeader({
           <ScrambleText>PHOTOGRAPHY</ScrambleText>
         </NavLink>
         <NavLink
+          to="/about"
+          data-cursor="interactive"
+          data-page-header
+          onClick={handleNavClick('/about')}
+        >
+          <ScrambleText>ABOUT</ScrambleText>
+        </NavLink>
+        <NavLink
           to="/contact"
           data-cursor="interactive"
           data-page-header

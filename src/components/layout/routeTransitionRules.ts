@@ -1,4 +1,4 @@
-const CINEMATIC_ROUTES = new Set(['/', '/art', '/photography', '/contact'])
+const CINEMATIC_ROUTES = new Set(['/', '/art', '/photography', '/contact', '/about'])
 const mediaCollection = (path: string) => /^\/(art|photography)\/[^/]+\/?$/.exec(path)?.[1]
 const isCaseStudy = (path: string) => /^\/case-studies\/[^/]+\/?$/.test(path)
 

@@ -1,0 +1,190 @@
+.about-page {
+  /* Page-specific roles preserve the PDF without changing shared typography. */
+  --type-about-heading-size: clamp(2rem, 2.5vw, 3rem);
+  --type-about-greeting-weight: var(--font-weight-light);
+  --type-about-name-weight: var(--font-weight-semibold);
+  --type-about-body-size: clamp(1rem, 1.05vw, 1.25rem);
+  --type-about-body-line-height: 1.4;
+  --type-about-detail-size: 1rem;
+  --about-detail-min-width: 14rem; /* Room for the email and its arrow. */
+  --about-top-space: max(var(--space-14), 37vh);
+  --about-bottom-space: var(--space-9);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 100svh;
+  padding: var(--about-top-space) var(--layout-gutter)
+    max(var(--about-bottom-space), env(safe-area-inset-bottom));
+}
+
+.about-intro,
+.about-details {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: var(--space-4);
+}
+
+.about-heading {
+  grid-column: 1 / span 5;
+  font-size: var(--type-about-heading-size);
+  line-height: var(--line-height-heading);
+  letter-spacing: var(--letter-spacing-heading);
+  text-wrap: initial;
+}
+
+.about-heading span,
+.about-heading strong { display: block; }
+.about-heading span { font-weight: var(--type-about-greeting-weight); }
+.about-heading strong { font-weight: var(--type-about-name-weight); }
+
+.about-biography {
+  grid-column: 7 / span 6;
+  display: grid;
+  gap: var(--space-5);
+}
+
+.about-biography p {
+  font-size: var(--type-about-body-size);
+  font-weight: var(--font-weight-regular);
+  line-height: var(--type-about-body-line-height);
+  text-wrap: initial;
+}
+
+.about-details {
+  margin: auto 0 0;
+  padding-top: var(--space-12);
+  font-size: var(--type-about-detail-size);
+  line-height: var(--line-height-label);
+  letter-spacing: var(--letter-spacing-label);
+}
+
+.about-details > div:nth-child(1) { grid-column: 1 / span 2; }
+.about-details > div:nth-child(2) { grid-column: 3 / span 3; }
+.about-details > div:nth-child(3) { grid-column: 7 / span 2; }
+.about-details > div:nth-child(4) { grid-column: 9 / span 3; }
+.about-details > div { min-width: 0; }
+.about-details dt {
+  margin-bottom: var(--space-2);
+  color: var(--color-text-secondary);
+  font-weight: var(--font-weight-medium);
+  text-transform: uppercase;
+}
+.about-details dd { margin: 0; }
+.about-details .contact-link-button {
+  display: flex;
+  width: fit-content;
+  justify-content: flex-start;
+  min-height: var(--space-6);
+  font-size: var(--type-about-detail-size);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--line-height-label);
+}
+.about-details .contact-link-button__icon {
+  width: var(--space-4);
+  height: var(--space-4);
+}
+
+
+.about-details > div:nth-child(3) { grid-column: 7 / span 3; }
+.about-details > div:nth-child(4) { grid-column: 10 / span 3; }
+
+
+@media (max-width: 1024px) {
+  .about-page {
+    --about-top-space: var(--space-14);
+    --about-bottom-space: var(--space-8);
+    --type-about-heading-size: var(--font-size-heading);
+    --type-about-body-size: var(--font-size-body);
+  }
+
+  .about-intro { 
+    grid-template-columns: repeat(8, minmax(0, 1fr)); 
+    gap: var(--space-4); 
+    padding-top: var(--space-14);
+  }
+
+  .about-heading{
+  grid-column: 1 / span 4;
+  }
+  
+  .about-biography { 
+    grid-column: 5 / span 4; 
+  }
+  
+  .about-details { 
+    grid-template-columns: repeat(2, minmax(0, 1fr)); 
+    column-gap: var(--space-4);
+    row-gap: var(--space-6);
+  }
+  .about-details > div:nth-child(n) { grid-column: auto; }
+  .about-details .contact-link-button { min-height: calc(var(--space-6) + var(--space-1)); }
+}
+
+@media (max-width: 1024px) {
+  .about-intro {
+    /* Center in the space left between the header clearance and footer. */
+    flex: 1 0 auto;
+    align-content: center;
+    padding-block: var(--space-8);
+  }
+
+  .about-details {
+    flex-shrink: 0;
+    margin-top: 0;
+    padding-top: 0;
+  }
+}
+
+/* Four 14rem groups + three grid gutters + page margins. */
+@media (min-width: 62rem) and (max-width: 1024px) {
+  .about-details {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 600px) {
+  .about-page {
+    /* 24px at 320px wide → 40px at 600px wide. */
+    --type-about-heading-size: clamp(1.5rem, 0.357143rem + 5.714286vw, 2.5rem);
+    /* 12px at 320px wide → 16px at 600px wide. */
+    --type-about-body-size: clamp(0.75rem, 0.464286rem + 1.428571vw, 1rem);
+    --type-about-detail-size: var(--type-about-body-size);
+    --about-top-space: var(--space-14);
+    --about-bottom-space: var(--space-5);
+  }
+
+  .about-intro { 
+    grid-template-columns: minmax(0, 1fr); 
+    gap: var(--space-5); 
+  }
+
+  .about-heading,.about-biography { 
+    grid-column: 1; 
+  }
+  .about-biography { gap: var(--space-3); }
+  .about-details {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: var(--space-4);
+    row-gap: var(--space-6);
+  }
+  .about-details > div:nth-child(3) { grid-column: 1 / -1; grid-row: 1; }
+  .about-details > div:nth-child(4) { grid-column: 1 / -1; grid-row: 2; }
+  .about-details > div:nth-child(1) { grid-column: 1; grid-row: 3; }
+  .about-details > div:nth-child(2) { grid-column: 2; grid-row: 3; }
+  .about-details dt { margin-bottom: var(--space-2); }
+  .about-details > div:nth-child(-n + 2) dd {
+    display: flex;
+    align-items: center;
+    min-height: calc(var(--space-6) + var(--space-1));
+  }
+  .about-details .contact-link-button__icon {
+    width: var(--space-3);
+    height: var(--space-3);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  /* Shared entrance fades remain; suppress its decorative vertical travel. */
+  .about-page [data-enter-text],
+  .about-page [data-enter-meta] { transform: none !important; }
+}
