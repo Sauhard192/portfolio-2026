@@ -109,7 +109,7 @@
   --type-contact-link-line-height: 1.25;
 
   /* Spacing: 4px base, 8px rhythm */
-  /* Case study: PDF proportions, independent of the gallery's card sizing. */
+  /* Case study*/
   --type-case-title-size: var(--type-project-title-size);
   --type-case-title-weight: var(--type-project-title-weight);
   --type-case-body-size: clamp(1rem, 1.25vw, 1.5rem);

@@ -1,11 +1,12 @@
 .about-page {
-  /* Page-specific roles preserve the PDF without changing shared typography. */
-  --type-about-heading-size: clamp(2rem, 2.5vw, 3rem);
+
+  --type-about-heading-size: var(--font-size-heading);
   --type-about-greeting-weight: var(--font-weight-light);
   --type-about-name-weight: var(--font-weight-semibold);
-  --type-about-body-size: clamp(1rem, 1.05vw, 1.25rem);
-  --type-about-body-line-height: 1.4;
-  --type-about-detail-size: 1rem;
+  --type-about-body-size: var(--font-size-body);
+  --type-about-body-line-height: var(--line-height-body);
+
+  --type-about-detail-size: var(--font-size-label);
   --about-detail-min-width: 14rem; /* Room for the email and its arrow. */
   --about-top-space: max(var(--space-14), 37vh);
   --about-bottom-space: var(--space-9);
@@ -88,6 +89,13 @@
 .about-details > div:nth-child(3) { grid-column: 7 / span 3; }
 .about-details > div:nth-child(4) { grid-column: 10 / span 3; }
 
+@media (min-width: 1024px) {
+  .about-heading{transform: translateY(-1rem);}
+}
+
+@media (min-width: 600px) {
+  .about-heading{transform: translateY(-0.5rem);}
+}
 
 @media (max-width: 1024px) {
   .about-page {
@@ -145,9 +153,9 @@
 @media (max-width: 600px) {
   .about-page {
     /* 24px at 320px wide → 40px at 600px wide. */
-    --type-about-heading-size: clamp(1.5rem, 0.357143rem + 5.714286vw, 2.5rem);
+    --type-about-heading-size: var(--font-size-heading);
     /* 12px at 320px wide → 16px at 600px wide. */
-    --type-about-body-size: clamp(0.75rem, 0.464286rem + 1.428571vw, 1rem);
+    --type-about-body-size: var(--font-size-body);
     --type-about-detail-size: var(--type-about-body-size);
     --about-top-space: var(--space-14);
     --about-bottom-space: var(--space-5);
@@ -161,7 +169,7 @@
   .about-heading,.about-biography { 
     grid-column: 1; 
   }
-  .about-biography { gap: var(--space-3); }
+  .about-biography { gap: var(--space-4); }
   .about-details {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     column-gap: var(--space-4);
@@ -175,8 +183,13 @@
   .about-details > div:nth-child(-n + 2) dd {
     display: flex;
     align-items: center;
-    min-height: calc(var(--space-6) + var(--space-1));
+    min-height: calc(var(--space-5) + var(--space-2));
   }
+
+  .about-details .contact-link-button {
+    min-height: calc(var(--space-5) + var(--space-2));
+  }
+
   .about-details .contact-link-button__icon {
     width: var(--space-3);
     height: var(--space-3);
