@@ -69,6 +69,29 @@ export function ProjectSection({ section }: { section: CaseStudySection }) {
     </figcaption>}
   </figure>
 
+  if (section.type === 'videos') return <div className="case-study__videos">
+    {section.videos.map((video, index) => (
+      <figure
+        className="case-study__video"
+        key={index}
+        data-case-reveal
+      >
+        <div className="case-study__media-frame">
+          <CaseVideo video={video} />
+        </div>
+
+        {video.caption && (
+          <figcaption
+            className="case-study__image-caption"
+            data-case-caption
+          >
+            {video.caption}
+          </figcaption>
+        )}
+      </figure>
+    ))}
+  </div>
+
   const columns = section.images.length
   return <div className="case-study__images" data-columns={columns}>
     {section.images.map((image, index) => <figure className="case-study__image" key={index} data-case-reveal>

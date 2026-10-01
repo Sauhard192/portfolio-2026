@@ -184,7 +184,7 @@ Add `"ordered": true` to a list to display numbers.
 
 ### Videos
 
-Video sections are full width and appear in the same ordered `sections` list as images and notes:
+Video sections appear in the same ordered `sections` list as images and notes. Use `video` for one full-width video:
 
 ```json
 {
@@ -217,7 +217,35 @@ Videos:
 - hide the browser's native video controls
 - remain paused by default when reduced motion is requested, until the visitor starts them
 
-The video uses the same case-study mask-and-scale reveal as a full-width image. Its optional caption uses the same caption styling and delayed fade.
+The single video uses the same sideways mask-and-scale reveal as a full-width image. Its optional caption uses the same caption styling and delayed fade.
+
+#### Two videos in one row
+
+Use `videos` with exactly two objects:
+
+```json
+{
+  "videos": [
+    {
+      "video": "team-selection.mp4",
+      "poster": "team-selection-poster.jpg",
+      "alt": "Selecting players for a team",
+      "caption": "Team selection."
+    },
+    {
+      "video": "leaderboard.mp4",
+      "caption": "Live leaderboard."
+    }
+  ]
+}
+```
+
+Only `video` is required inside each object; `poster`, `alt`, and `caption` are optional and follow the same rules as a single video.
+
+- Videos sit side by side above 640px and stack in their listed order at 640px and below.
+- Each preserves its original aspect ratio, so their heights can differ. Top edges align.
+- Each plays and pauses independently, with its own optional caption below it.
+- Paired videos use the upward mask-and-scale reveal and row stagger used by paired images. Once stacked on mobile, each triggers independently as it enters view.
 
 ## Project URLs and metadata labels
 

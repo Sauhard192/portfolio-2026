@@ -137,6 +137,12 @@
   align-items: start;
   gap: var(--case-image-gap);
 }
+.case-study__videos {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+  gap: var(--case-image-gap);
+}
 .case-study__images[data-columns='1'] { grid-template-columns: minmax(0, 1fr); }
 .case-study__images[data-columns='3'] { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .case-study__notes { display: grid; grid-template-columns: 1fr 1fr; gap: var(--case-image-gap); }
@@ -277,7 +283,10 @@
   .case-study__intro-bottom { align-items: flex-start; flex-direction: column; margin-top: var(--space-5); }
   .case-study__notes { grid-template-columns: minmax(0, 1fr); gap: var(--space-5); }
   .case-study__images,
-  .case-study__images[data-columns='3'] { grid-template-columns: minmax(0, 1fr); }
+  .case-study__images[data-columns='3'],
+  .case-study__videos {
+    grid-template-columns: minmax(0, 1fr);
+  }
 
   .case-study__intro h1:focus { outline: none; }
     .case-study__intro-bottom {

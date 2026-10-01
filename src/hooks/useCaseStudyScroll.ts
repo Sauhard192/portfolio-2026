@@ -166,8 +166,10 @@ export function useCaseStudyScroll(
           const isImage = element.classList.contains('case-study__image')
             || element.classList.contains('case-study__hero')
             || element.classList.contains('case-study__video')
-          // Only stagger images sharing a row; stacked mobile images trigger individually.
-          const rowIndex = element.classList.contains('case-study__image') && element.parentElement
+          const isPairedVideo = element.classList.contains('case-study__video')
+            && element.parentElement?.classList.contains('case-study__videos')
+          // Stagger media sharing a row; stacked mobile items trigger individually.
+          const rowIndex = (element.classList.contains('case-study__image') || isPairedVideo) && element.parentElement
             ? Array.from(element.parentElement.children).filter(sibling =>
               sibling instanceof HTMLElement && sibling.offsetTop === element.offsetTop,
             ).indexOf(element)
@@ -188,7 +190,7 @@ export function useCaseStudyScroll(
               ? undefined
               : { trigger: element, start: 'top 90%', once: true },
           })
-          const sideways = element.classList.contains('case-study__video')
+          const sideways = (element.classList.contains('case-study__video') && !isPairedVideo)
             || (element.classList.contains('case-study__image') && element.parentElement?.dataset.columns === '1')
           const revealTarget = isImage
             ? element.querySelector<HTMLElement>('.case-study__media-frame') ?? element

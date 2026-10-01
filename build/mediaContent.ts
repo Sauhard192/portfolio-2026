@@ -162,11 +162,26 @@ export function mediaContent(): Plugin {
           if (building) this.addWatchFile(entry.infoPath)
           const hero = imageCode(entry.hero)
           const thumbnail = entry.thumbnail ? `,thumbnail:${imageCode(entry.thumbnail)}` : ''
+
           const sections = entry.sections.map(section => {
-            if (section.type === 'notes') return JSON.stringify(section)
-            if (section.type === 'video') return `{type:'video',video:${videoCode(section.video)}}`
-            return `{...${JSON.stringify({ type: section.type, aspectRatio: section.aspectRatio })},images:[${section.images.map(imageCode).join(',')}]}`
+            if (section.type === 'notes') {
+              return JSON.stringify(section)
+            }
+
+            if (section.type === 'video') {
+              return `{type:'video',video:${videoCode(section.video)}}`
+            }
+
+            if (section.type === 'videos') {
+              return `{type:'videos',videos:[${section.videos.map(videoCode).join(',')}]}`
+            }
+
+            return `{...${JSON.stringify({
+              type: section.type,
+              aspectRatio: section.aspectRatio,
+            })},images:[${section.images.map(imageCode).join(',')}]}`
           })
+          
           return `{...${JSON.stringify(entry.info)},hero:${hero}${thumbnail},sections:[${sections.join(',')}]}`
         })
         return `${imports.join('\n')}\nexport default [${items.join(',\n')}];`

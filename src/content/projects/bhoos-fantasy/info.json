@@ -1,0 +1,80 @@
+{
+  "slug": "bhoos-fantasy",
+  "title": "Bhoos Fantasy",
+  "roles": ["Product Design", "UI/UX Design", "Design System", "Mobile App"],
+  "projectType": "UI/UX Design",
+  "date": "2024",
+  "description": "UI/UX design for Bhoos Fantasy, a fantasy sports platform covering cricket and football. The project focused on simplifying team selection, player management, powerups, scoring, and tournament progression into a clear and engaging mobile experience.",
+  "hero": "cover.png",
+  "thumbnail": "thumbnail.png",
+
+
+  "sections": [
+    {
+      "images":[
+        "img1.png"
+      ]
+    },
+
+   {
+      "title": "Research & Product Structure",
+      "body": "I studied competitor patterns, existing user behavior, and the product structure to identify friction points and shape a clearer, more intuitive fantasy sports experience."
+    },
+    
+    {
+      "images": [{
+          "file": "img2.png",
+          "alt": "",
+          "caption": "Competitor Research: Studied existing fantasy sports products to understand common patterns, strengths, and friction points."
+      }]
+    },
+    {
+      "images": [{
+          "file": "img3.png",
+          "alt": "",
+          "caption": "User Funnels: Reviewed user activity across key steps to identify drop-offs and engagement patterns."
+        }]
+    },
+    {
+      "images": [{
+          "file": "img4.png",
+          "alt": "",
+          "caption": "Information Architecture: Mapped the app’s core sections and flows to create a clearer product structure."
+        }]
+    },
+
+    {
+      "title": "A Scalable UI System",
+      "body": "A flexible design system was created to keep the experience consistent across match states, team-building flows, leaderboards, and seasonal events. Reusable components helped simplify dense sports information while making the interface easier to scale and maintain."
+    },
+
+    {
+      "video": "vid1.mp4"
+    },
+    {
+      "videos": [
+        {
+          "video": "vid2.mp4"
+        },
+        {
+          "video": "vid3.mp4"
+        }
+      ]
+    },
+
+    {
+      "title": "Seasonal Tournaments",
+      "body": "Seasonal tournaments extended the regular match-based experience into limited-time events, where players competed across multiple matches and climbed a separate cumulative leaderboard. Three tournaments were hosted during the app’s run, each giving players a longer-term goal beyond individual match results."
+    },
+     {
+      "images":[
+        "img5.png"
+      ]
+    }
+      
+    
+
+
+
+  ]
+}

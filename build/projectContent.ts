@@ -26,6 +26,7 @@ export interface ProjectEntry {
     | { type: 'notes'; title: string; body: ProjectBody }
     | { type: 'images'; images: ProjectFile[]; aspectRatio?: string }
     | { type: 'video'; video: ProjectVideoFile }
+    | { type: 'videos'; videos: ProjectVideoFile[] }
   >
 }
 
@@ -138,7 +139,53 @@ async function readProject(directory: string, folder: string, placeholderPath: s
     for (const [index, rawSection] of rawSections.entries()) {
       const label = `sections[${index}]`
       const section = object(rawSection, label)
-      if ('video' in section) {
+      
+      if ('videos' in section) {
+        keys(section, ['videos'], label)
+
+        if (!Array.isArray(section.videos) || section.videos.length !== 2) {
+          throw new Error(`${label}.videos needs exactly two videos.`)
+        }
+
+        const videos = await Promise.all(
+          section.videos.map(async (rawVideo, videoIndex) => {
+            const videoLabel = `${label}.videos[${videoIndex}]`
+            const video = object(rawVideo, videoLabel)
+
+            keys(video, ['video', 'poster', 'alt', 'caption'], videoLabel)
+
+            const videoPath = await localFile(
+              video.video,
+              `${videoLabel}.video`,
+              /\.mp4$/i,
+              'an MP4 file',
+            )
+
+            const metadata = await readVideoMetadata(videoPath)
+
+            return {
+              path: videoPath,
+              ...metadata,
+              alt: video.alt === undefined
+                ? title
+                : text(video.alt, `${videoLabel}.alt`),
+              poster: video.poster === undefined
+                ? undefined
+                : await image(video.poster, `${videoLabel}.poster`),
+              caption: video.caption === undefined
+                ? undefined
+                : text(video.caption, `${videoLabel}.caption`, false),
+            }
+          }),
+        )
+
+        sections.push({
+          type: 'videos',
+          videos,
+        })
+      }
+
+      else if ('video' in section) {
         keys(section, ['video', 'poster', 'alt', 'caption'], label)
         const videoPath = await localFile(section.video, `${label}.video`, /\.mp4$/i, 'an MP4 file')
         const metadata = await readVideoMetadata(videoPath)

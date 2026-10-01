@@ -32,6 +32,10 @@ export type CaseStudySection =
   | { type: 'notes'; title: string; body: ProjectBody }
   | { type: 'images'; images: [ProjectImage] | [ProjectImage, ProjectImage] | [ProjectImage, ProjectImage, ProjectImage]; aspectRatio?: string }
   | { type: 'video'; video: ProjectVideo }
+  | {
+    type: 'videos'
+    videos: [ProjectVideo, ProjectVideo]
+  }
 
 export interface CaseStudy {
   slug: string
@@ -60,6 +64,8 @@ export type ProjectSectionInfo =
   | { title: string; body: ProjectBody }
   | { images: [ProjectImageFile] | [ProjectImageFile, ProjectImageFile] | [ProjectImageFile, ProjectImageFile, ProjectImageFile]; aspectRatio?: string }
   | ProjectVideoFile
+  | { videos: [ProjectVideoFile, ProjectVideoFile]}
+  
 export interface ProjectInfo extends Partial<Omit<CaseStudy, 'slug' | 'title' | 'hero' | 'thumbnail' | 'sections'>> {
   title: string
   slug?: string
