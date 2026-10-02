@@ -1,0 +1,95 @@
+{
+  "slug": "uniport",
+  "title": "Uniport",
+  "roles": ["Website Design", "Responsive", "UI System", "Marketing"],
+  "projectType": "Website Design",
+  "date": "2022",
+  "description": "I designed UniPort’s marketing website along with a university discovery experience that lets students search universities and programs, explore detailed university pages, and learn about membership services. The idea was to keep everything in one place, so students could discover options while also understanding the guidance and support UniPort offered.",
+  "hero": "cover.png",
+  "thumbnail": "thumbnail.png",
+
+
+  "sections": [
+    {
+      "images":[
+        "img1.png"
+      ]
+    },
+  
+    {
+      "images": [
+        {
+          "file": "img2.png",
+          "alt": ""
+        },
+        {
+          "file": "img3.png",
+          "alt": ""
+        }
+      ]
+    },
+
+    {
+      "images": [
+        {
+          "file": "img4.png",
+          "alt": ""
+        },
+        {
+          "file": "img5.png",
+          "alt": ""
+        }
+      ]
+    },
+
+     {
+      "images": [
+        {
+          "file": "img6.png",
+          "alt": ""
+        },
+        {
+          "file": "img7.png",
+          "alt": ""
+        }
+      ]
+    },
+
+    {
+      "title": "University & Program Search",
+      "body": "The university and program finder helped students search, filter, and compare study options based on factors like location, study level, field, and test scores. The goal was to make a large amount of university information easier to explore without making the experience feel overwhelming."
+    },
+     {
+      "images":[
+        "img8.png"
+      ]
+    },
+
+     {
+      "images": [
+        {
+          "file": "img9.png",
+          "alt": ""
+        },
+        {
+          "file": "img10.png",
+          "alt": ""
+        }
+      ]
+    },
+
+     {
+      "images": [
+        {
+          "file": "img11.png",
+          "alt": ""
+        },
+        {
+          "file": "img12.png",
+          "alt": ""
+        }
+      ]
+    }
+
+  ]
+}
