@@ -2,7 +2,8 @@ import { useLayoutEffect, useRef, useState } from 'react'
 import { gsap } from 'gsap'
 
 import { acquireDocumentScrollLock } from '../../hooks/documentScrollLock'
-import { STARTUP_READY_EVENT } from './startupTransition'
+import { isStartupPending, STARTUP_READY_EVENT } from './startupTransition'
+import logo from '../../assets/icons/jhelli-logo.svg'
 
 const MINIMUM_DISPLAY_MS = 1800
 const MAXIMUM_ASSET_WAIT_MS = 4500
@@ -12,6 +13,14 @@ const RANDOM_STAGE_HOLD_MS = 140
 const RANDOM_SCRAMBLE_STAGES = 2
 const CHARACTER_FRAME_MS = 34
 const CHARACTER_POOL = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789'
+// Preview entrance timings, in seconds.
+const PREVIEW_PAUSE_SECONDS = 0.3
+const LOGO_FADE_SECONDS = 0.4
+const TEXT_ENTER_AT_SECONDS = 0.15
+const TEXT_FADE_SECONDS = 0.5
+const FILL_START_SECONDS = 0.35
+const SCRAMBLE_START_SECONDS = 0.45
+const PREVIEW_STAGE_HOLD_MS = 50
 
 const wait = (duration: number) => new Promise<void>((resolve) => {
   window.setTimeout(resolve, duration)
@@ -89,11 +98,14 @@ const scrambleTo = (
   frame = requestAnimationFrame(animate)
 })
 
-export function StartupLoader() {
+export function StartupLoader({ preview = false }: { preview?: boolean }) {
   const rootRef = useRef<HTMLDivElement>(null)
   const textRef = useRef<HTMLSpanElement>(null)
   const curtainRef = useRef<HTMLDivElement>(null)
-  const [visible, setVisible] = useState(true)
+  const fillRef = useRef<HTMLSpanElement>(null)
+  const logoRef = useRef<HTMLSpanElement>(null)
+  const [replay, setReplay] = useState(0)
+  const [visible, setVisible] = useState(() => preview || isStartupPending())
 
   useLayoutEffect(() => {
     const root = rootRef.current
@@ -108,10 +120,25 @@ export function StartupLoader() {
     let cancelled = false
     let timeline: gsap.core.Timeline | null = null
     const isCancelled = () => cancelled
+    const fill = fillRef.current
+    const logoElement = logoRef.current
+    if (preview) {
+      // The standalone test must not block later page entrances.
+      document.documentElement.dataset.startup = 'complete'
+      window.dispatchEvent(new Event(STARTUP_READY_EVENT))
+      text.textContent = 'LOADING...'
+      gsap.set(text, { opacity: 1, y: 0, filter: 'none' })
+      if (fill) gsap.set(fill, { clipPath: reducedMotion ? 'inset(0% 0 0 0)' : 'inset(100% 0 0 0)' })
+      if (logoElement) gsap.set(logoElement, {
+        opacity: reducedMotion ? 1 : 0,
+        y: reducedMotion ? 0 : 12,
+        filter: reducedMotion ? 'none' : 'blur(8px)',
+      })
+    }
 
     const essentialAssets = Promise.all([
       document.fonts?.ready.catch(() => undefined) ?? Promise.resolve(),
-      waitForInitialMedia(),
+      preview ? Promise.resolve() : waitForInitialMedia(),
     ])
     const assetDeadline = Promise.race([
       essentialAssets,
@@ -119,7 +146,22 @@ export function StartupLoader() {
     ])
 
     const finish = async () => {
-      if (reducedMotion) {
+      if (preview && !reducedMotion && logoElement) {
+        gsap.set(text, { opacity: 0, y: 12, filter: 'blur(8px)' })
+        await new Promise<void>((resolve) => {
+          timeline = gsap.timeline({ delay: PREVIEW_PAUSE_SECONDS, onInterrupt: resolve })
+            .to(logoElement, { opacity: 1, y: 0, filter: 'blur(0px)', duration: LOGO_FADE_SECONDS, ease: 'power3.out' }, 0)
+            .to(text, { opacity: 1, y: 0, filter: 'blur(0px)', duration: TEXT_FADE_SECONDS, ease: 'power3.out' }, TEXT_ENTER_AT_SECONDS)
+            // Start scrambling before the text entrance finishes.
+            .call(resolve, [], SCRAMBLE_START_SECONDS)
+          if (fill) timeline.to(fill, {
+            clipPath: 'inset(0% 0 0 0)',
+            duration: SCRAMBLE_START_SECONDS - FILL_START_SECONDS
+              + (RANDOM_SCRAMBLE_STAGES * (TEXT_CHANGE_MS + PREVIEW_STAGE_HOLD_MS) + TEXT_CHANGE_MS) / 1000,
+            ease: 'none',
+          }, FILL_START_SECONDS)
+        })
+      } else if (reducedMotion) {
         text.textContent = 'LOADING...'
       } else {
         gsap.fromTo(
@@ -129,7 +171,7 @@ export function StartupLoader() {
         )
       }
 
-      await Promise.all([wait(MINIMUM_DISPLAY_MS), assetDeadline])
+      if (!preview) await Promise.all([wait(MINIMUM_DISPLAY_MS), assetDeadline])
       if (cancelled) return
 
       if (reducedMotion) {
@@ -138,7 +180,7 @@ export function StartupLoader() {
         for (let stage = 0; stage < RANDOM_SCRAMBLE_STAGES; stage += 1) {
           await scrambleTo(text, createRandomText('ALMOST READY'), TEXT_CHANGE_MS, isCancelled)
           if (cancelled) return
-          await wait(RANDOM_STAGE_HOLD_MS)
+          await wait(preview ? PREVIEW_STAGE_HOLD_MS : RANDOM_STAGE_HOLD_MS)
         }
 
         await scrambleTo(text, 'ALMOST READY', TEXT_CHANGE_MS, isCancelled)
@@ -147,6 +189,8 @@ export function StartupLoader() {
 
       await wait(READY_HOLD_MS)
       if (cancelled) return
+      // Hold the final frame so the test can be replayed without leaving its URL.
+      if (preview) return
 
       timeline = gsap.timeline({
         onComplete: () => {
@@ -184,15 +228,23 @@ export function StartupLoader() {
       cancelled = true
       timeline?.kill()
       gsap.killTweensOf([root, text, curtain])
+      if (fill) gsap.killTweensOf(fill)
+      if (logoElement) gsap.killTweensOf(logoElement)
       releaseScrollLock()
     }
-  }, [])
+  }, [preview, replay])
 
   if (!visible) return null
 
   return (
-    <div ref={rootRef} className="startup-loader" role="status" aria-live="polite" aria-label="Loading portfolio">
-      <span ref={textRef} className="startup-loader__text" aria-hidden="true">LOADING...</span>
+    <div ref={rootRef} className={`startup-loader${preview ? ' startup-loader--preview' : ''}`}>
+      <div className={preview ? 'startup-loader__group' : 'startup-loader__status'} role="status" aria-live="polite" aria-label={preview ? 'Loading animation preview' : 'Loading portfolio'}>
+        {preview && <span ref={logoRef} className="startup-loader__logo" style={{ maskImage: `url("${logo}")`, WebkitMaskImage: `url("${logo}")` }} aria-hidden="true">
+          <span ref={fillRef} className="startup-loader__fill" />
+        </span>}
+        <span ref={textRef} className="startup-loader__text" aria-hidden="true">LOADING...</span>
+      </div>
+      {preview && <button type="button" className="startup-loader__replay" onClick={() => setReplay((value) => value + 1)}>Replay</button>}
       <div ref={curtainRef} className="startup-loader__curtain portfolio-background" aria-hidden="true" />
     </div>
   )
