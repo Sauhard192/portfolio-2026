@@ -33,6 +33,7 @@ For a complete working example, see `jelli-studio/info.json`.
 | `description` | Project introduction. |
 | `hero` | Main cover image. Required. |
 | `heroAspectRatio` | Optional hero crop ratio, such as `"2 / 1"`. |
+| `cornerRadius` | Optional radius for the hero and content images/videos, such as `"1rem"`. Defaults to square corners. |
 | `thumbnail` | Optional image used on Home and in the next-project preview. |
 | `siteUrl` | Optional project URL. Empty or omitted hides **VIEW SITE**. |
 | `sections` | Ordered project content: notes and image layouts. |
@@ -42,6 +43,24 @@ For a complete working example, see `jelli-studio/info.json`.
 The `date` value is displayed exactly as entered and does not control project order.
 
 ## Working with images
+
+### Rounded corners
+
+Add this at the top level of a project's `info.json` (not inside `sections`):
+
+```json
+"cornerRadius": "1rem"
+```
+
+Use a non-negative rem value, such as `"0.5rem"`, `"1rem"`, or `"1.5rem"`.
+It applies to the hero and every content image/video, including paired media,
+loading placeholders and reveal clipping. This is the maximum radius: it scales
+smoothly from 25% at viewport widths of 400px or less, through 50% at 800px,
+to 100% at 1200px or more.
+For example, `"1.5rem"` becomes `0.375rem` at 400px, `0.75rem` at 800px,
+and `1.5rem` at 1200px. No per-device settings are needed.
+Captions, gallery cards and the next-project footer thumbnail are unchanged.
+Omit the field or use `"0rem"` for square corners.
 
 ### Simple image
 

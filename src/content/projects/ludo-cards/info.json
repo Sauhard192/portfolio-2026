@@ -1,0 +1,84 @@
+{
+  "slug": "ludo-cards",
+  "title": "Ludo Cards",
+  "roles": ["Game UI:", "Game Design", "Mobile Game", "UX Design"],
+  "projectType": "UI/UX Design",
+  "date": "2025",
+  "description": "Ludo Cards is a tactical reimagining of classic Ludo, replacing dice-driven luck with cards, resource management, and strategic decisions. I worked on shaping the game experience and interface, making the new mechanics feel intuitive while keeping the familiarity and simplicity of Ludo.",
+  "siteUrl": "https://play.google.com/store/apps/details?id=com.bhoos.ludocards&hl=en_SG",
+  "hero": "cover.png",
+  "thumbnail": "thumbnail.png",
+  "cornerRadius": "3rem",
+
+
+  "sections": [
+    {
+      "images":[
+        "img1.png"
+      ]
+    },
+    {
+      "video": "vid1.mp4"
+    },
+    {
+      "images":[
+        "img2.png"
+      ]
+    },
+
+    {
+      "title": "Components & Game Assets",
+      "body": "A modular set of UI components and game assets was created to keep the experience consistent across gameplay, progression, menus, and different game states while maintaining the playful visual style of Ludo Cards."
+    },
+    {
+      "images": [
+        {
+          "file": "img3.png"
+        },
+        {
+          "file": "img4.png"
+        }
+      ]
+    },
+
+    
+    {
+      "title": "Cards & Tactical Actions",
+      "body": "Cards are the main strategic layer of Ludo Cards, giving players different ways to move, attack, defend, and influence the board. Each card was designed to communicate its effect quickly while still feeling distinct and collectible."
+    },
+    {
+      "video": "vid2.mp4"
+    },
+
+    {
+      "title": "Gameplay & Interactions",
+      "body": "The gameplay experience focused on making each turn easy to understand, from choosing cards and selecting pawns to attacking, defending, and reacting to changing board states. An onboarding tutorial introduced these mechanics through guided play, helping players learn the added strategy without relying on long instructions."
+    },
+    {
+      "videos": [
+        {
+          "video": "vid3.mp4"
+        },
+        {
+          "video": "vid4.mp4"
+        }
+      ]
+    },
+    {
+      "videos": [
+        {
+          "video": "vid5.mp4"
+        },
+        {
+          "video": "vid6.mp4"
+        }
+      ]
+    },
+    {
+      "images":[
+        "img5.png"
+      ]
+    }
+
+  ]
+}

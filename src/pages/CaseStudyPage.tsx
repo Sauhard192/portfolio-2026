@@ -34,7 +34,8 @@ function CaseStudyContent({ project, next }: { project?: CaseStudy; next?: CaseS
 
   return <main ref={pageRef} className="case-study-page portfolio-background" data-case-study={project?.slug}>
     <SiteHeader />
-    {project ? <article className="case-study">
+    {project ? <article className="case-study"
+      style={{ '--case-media-radius-max': project.cornerRadius ?? '0rem' } as CSSProperties}>
       <header className="case-study__intro">
         <h1 tabIndex={-1} data-enter-text>{project.title}</h1>
         <div className="case-study__intro-bottom">

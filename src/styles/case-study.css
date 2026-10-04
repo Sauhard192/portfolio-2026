@@ -5,7 +5,16 @@
 }
 
 .case-study {
+  --case-media-radius: var(--case-media-radius-max, 0rem);
   padding: var(--case-intro-offset) var(--layout-gutter) var(--space-12);
+}
+
+@supports (border-radius: calc(1rem * (100vw / 1600px))) {
+  .case-study {
+    /* 25% at 400px, 50% at 800px, 100% at 1200px; continuous between. */
+    --case-media-radius-scale: clamp(0.25, max(calc(100vw / 1600px), calc(100vw / 800px - 0.5)), 1);
+    --case-media-radius: calc(var(--case-media-radius-max, 0rem) * var(--case-media-radius-scale));
+  }
 }
 
 .case-study__intro { margin-bottom: var(--case-section-gap); }
@@ -45,7 +54,15 @@
 .case-study__image,
 .case-study__video { margin: 0; background: transparent; }
 .case-study__hero,
-.case-study__media-frame { overflow: hidden; }
+.case-study__media-frame {
+  overflow: hidden;
+  border-radius: var(--case-media-radius, 0rem);
+}
+/* Keep scaled media and loading layers rounded during their reveals too. */
+.case-study :is(.progressive-image, .case-study__video-frame, .case-study__video-element) {
+  border-radius: var(--case-media-radius, 0rem);
+}
+.case-study .case-study__video-frame { overflow: hidden; }
 .case-study__media-frame { width: 100%; }
 .case-study :is(.case-study__hero, .case-study__image) .image-skeleton {
   background: transparent;

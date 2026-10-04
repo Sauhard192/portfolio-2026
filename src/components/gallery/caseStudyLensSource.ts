@@ -2,7 +2,7 @@ import { paintBackgroundGrid } from './paintBackgroundGrid'
 
 // Rasterize only the two edge strips. The shared WebGL shader stays unchanged.
 // This adapter supports the case-study renderer's text, images, and inset reveals.
-type Box = { x: number; y: number; width: number; height: number }
+type Box = { x: number; y: number; width: number; height: number; radius?: number }
 type Line = Box & { text: string }
 type Snapshot = { element: HTMLElement; rect: DOMRect; style: CSSStyleDeclaration; opacity: number; clips: Box[] }
 const excluded = '.next-project__progress, .next-project__hit-area, .scramble-text__measure'
@@ -38,7 +38,10 @@ export class CaseStudyLensSource {
         const bottom = pixels(values[2] ?? values[0], rect.height), left = pixels(values[3] ?? values[1] ?? values[0], rect.width)
         clips.push({ x: rect.x + left, y: rect.y + top, width: Math.max(0, rect.width - left - right), height: Math.max(0, rect.height - top - bottom) })
       }
-      if (style.overflowX === 'hidden' || style.overflowY === 'hidden') clips.push({ x: rect.x, y: rect.y, width: rect.width, height: rect.height })
+      if (style.overflowX === 'hidden' || style.overflowY === 'hidden') clips.push({
+        x: rect.x, y: rect.y, width: rect.width, height: rect.height,
+        radius: (parseFloat(style.borderTopLeftRadius) || 0) * rect.width / (element.offsetWidth || rect.width || 1),
+      })
       const opacity = style.display === 'none' || style.visibility === 'hidden' ? 0 : Number(style.opacity) * (parent?.opacity ?? 1)
       const snapshot = { element, rect, style, opacity, clips }
       snapshots.set(element, snapshot)
@@ -76,7 +79,7 @@ export class CaseStudyLensSource {
         if (!intersects(record.rect, origin, band)) continue
         ctx.save()
         for (const clip of record.clips) {
-          ctx.beginPath(); ctx.rect(clip.x, clip.y, clip.width, clip.height); ctx.clip()
+          ctx.beginPath(); ctx.roundRect(clip.x, clip.y, clip.width, clip.height, clip.radius ?? 0); ctx.clip()
         }
         ctx.globalAlpha = record.opacity
         this.draw(ctx, record)
@@ -123,7 +126,7 @@ export class CaseStudyLensSource {
       const scale = fit(w / sourceWidth, h / sourceHeight)
       const iw = sourceWidth * scale, ih = sourceHeight * scale
       const position = style.objectPosition.split(' ')
-      ctx.beginPath(); ctx.rect(0, 0, w, h); ctx.clip()
+      ctx.beginPath(); ctx.roundRect(0, 0, w, h, parseFloat(style.borderTopLeftRadius) || 0); ctx.clip()
       ctx.drawImage(element, pixels(position[0], w - iw), pixels(position[1] ?? '50%', h - ih), iw, ih)
       return
     }

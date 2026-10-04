@@ -60,6 +60,15 @@ function url(value: unknown, label: string): string {
   return result
 }
 
+function cornerRadius(value: unknown): string | undefined {
+  if (value === undefined) return
+  if (typeof value !== 'string' || !/^(?:\d+(?:\.\d+)?|\.\d+)rem$/.test(value.trim())
+    || !Number.isFinite(parseFloat(value))) {
+    throw new Error('cornerRadius must be a non-negative rem value such as "1rem" or "0.5rem".')
+  }
+  return value.trim()
+}
+
 function body(value: unknown, label: string): ProjectBody {
   if (typeof value === 'string') return value
   if (!Array.isArray(value)) throw new Error(`${label} must be text or an array of paragraph/list blocks.`)
@@ -96,7 +105,7 @@ async function readProject(directory: string, folder: string, placeholderPath: s
   try {
     if (!slugPattern.test(folder)) throw new Error('Folder names must use lowercase letters, numbers and single hyphens.')
     const fields = object(JSON.parse(source), 'info.json')
-    keys(fields, ['slug', 'title', 'roles', 'projectType', 'date', 'description', 'labels', 'siteUrl', 'hero', 'heroAspectRatio', 'thumbnail', 'sections'], 'info.json')
+    keys(fields, ['slug', 'title', 'roles', 'projectType', 'date', 'description', 'labels', 'siteUrl', 'hero', 'heroAspectRatio', 'cornerRadius', 'thumbnail', 'sections'], 'info.json')
     const title = text(fields.title, 'title', false)
     const slug = fields.slug === undefined ? folder : text(fields.slug, 'slug', false)
     if (!slugPattern.test(slug)) throw new Error('slug must use lowercase letters, numbers and single hyphens.')
@@ -216,6 +225,7 @@ async function readProject(directory: string, folder: string, placeholderPath: s
         description: body(fields.description ?? '', 'description'), labels,
         siteUrl: fields.siteUrl === undefined ? undefined : url(fields.siteUrl, 'siteUrl'),
         heroAspectRatio: ratio(fields.heroAspectRatio, 'heroAspectRatio'),
+        cornerRadius: cornerRadius(fields.cornerRadius),
       },
       hero: await image(fields.hero, 'hero'),
       thumbnail: fields.thumbnail === undefined ? undefined : await image(fields.thumbnail, 'thumbnail'), sections,

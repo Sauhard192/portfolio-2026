@@ -48,6 +48,7 @@ export interface CaseStudy {
   siteUrl?: string
   hero: ProjectImage
   heroAspectRatio?: string
+  cornerRadius?: string // Project media radius in rem; omitted means square corners.
   thumbnail?: ProjectImage // Defaults to the hero's optimized thumbnail.
   sections: CaseStudySection[]
 }
