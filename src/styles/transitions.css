@@ -53,25 +53,11 @@
   will-change: transform;
 }
 
-.startup-loader--preview {
+.startup-loader--logo {
   --loader-logo-size: 2rem;
   background: var(--color-ink);
 }
 
-.startup-loader__group {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-}
-
-.startup-loader__status { display: contents; }
-
-.startup-loader--preview .startup-loader__text {
-  display: inline-block;
-  /* Reserve the longest scramble stage without moving the logo. */
-  width: 14ch;
-  white-space: nowrap;
-}
 
 .startup-loader__logo {
   position: relative;
@@ -89,35 +75,6 @@
   inset: 0;
   background: var(--color-surface);
   clip-path: inset(100% 0 0 0);
-}
-
-.startup-loader__replay {
-  position: absolute;
-  bottom: max(var(--space-5), env(safe-area-inset-bottom));
-  padding: var(--space-3) var(--space-5);
-  min-height: 2.75rem;
-  border: 0;
-  background: transparent;
-  color: var(--color-surface);
-  font-size: var(--font-size-label);
-  cursor: pointer;
-  transition: opacity 150ms var(--ease-out), transform 150ms var(--ease-out);
-}
-
-.startup-loader__replay:focus-visible {
-  outline: 2px solid currentColor;
-  outline-offset: var(--space-1);
-}
-
-.startup-loader__replay:active { transform: scale(0.97); }
-
-@media (hover: hover) {
-  .startup-loader__replay:hover { opacity: 0.75; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .startup-loader__replay { transition: none; }
-  .startup-loader__replay:active { transform: none; }
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -1,4 +1,4 @@
-import { Navigate, Route, useLocation } from 'react-router-dom'
+import { Navigate, Route } from 'react-router-dom'
 
 import { AppLayout } from './components/layout/AppLayout'
 import { RouteTransition } from './components/layout/RouteTransition'
@@ -12,11 +12,9 @@ import { MediaViewPage } from './pages/MediaViewPage'
 import { PhotographyPage } from './pages/PhotographyPage'
 
 export function App() {
-  const isLoadingPreview = useLocation().pathname.replace(/\/$/, '') === '/loading-preview'
   return (
     <>
       <RouteTransition>
-        <Route path="loading-preview" element={<StartupLoader preview />} />
         <Route element={<AppLayout />}>
           <Route index element={<HomePage />} />
           <Route path="contact" element={<ContactPage />} />
@@ -32,7 +30,7 @@ export function App() {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>
       </RouteTransition>
-      {!isLoadingPreview && <StartupLoader />}
+      <StartupLoader />
     </>
   )
 }
