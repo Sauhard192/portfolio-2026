@@ -55,6 +55,9 @@
       "body": "The gameplay experience focused on making each turn easy to understand, from choosing cards and selecting pawns to attacking, defending, and reacting to changing board states. An onboarding tutorial introduced these mechanics through guided play, helping players learn the added strategy without relying on long instructions."
     },
     {
+      "video": "vid7.mp4"
+    },
+    {
       "videos": [
         {
           "video": "vid3.mp4"
@@ -72,11 +75,6 @@
         {
           "video": "vid6.mp4"
         }
-      ]
-    },
-    {
-      "images":[
-        "img5.png"
       ]
     }
 
