@@ -17,6 +17,9 @@ import {
   CASE_SIDE_REVEAL_START,
 } from '../components/case-study/revealTiming'
 
+// Module memory lasts until refresh; each collection gets its own first Grid visit.
+const visitedGridGalleries = new Set<string>()
+
 const VIEWPORT_EDGE_BUFFER = 64
 const CASE_META_STAGGER = 0.12
 
@@ -52,6 +55,8 @@ const caseImageRevealTarget = (element: HTMLElement) => (
 
 export function usePageEntrance(scopeRef: RefObject<HTMLElement | null>, view?: string) {
   const previousView = useRef(view)
+  // Keep the decision stable across startup readiness and StrictMode effect replays.
+  const gridVisit = useRef<{ key: string; view?: string; skip: boolean } | null>(null)
   const [startupReady, setStartupReady] = useState(() => !isStartupPending())
 
   useEffect(() => {
@@ -68,6 +73,14 @@ export function usePageEntrance(scopeRef: RefObject<HTMLElement | null>, view?: 
     const scope = scopeRef.current
     if (!scope) return
 
+    const galleryKey = scope.classList.contains('home-page') ? 'home' : scope.dataset.collection
+    if (galleryKey && (!gridVisit.current || gridVisit.current.key !== galleryKey || gridVisit.current.view !== view)) {
+      gridVisit.current = { key: galleryKey, view, skip: view === 'grid' && visitedGridGalleries.has(galleryKey) }
+    }
+    const skipGridImages = view === 'grid' && gridVisit.current?.skip === true
+    scope.dataset.skipGridImageMotion = String(skipGridImages)
+    const entranceImages = () => Array.from(scope.querySelectorAll<HTMLElement>('[data-enter-image]'))
+
     const switchingView = previousView.current !== view
     previousView.current = view
     // Other view switches keep their existing whole-surface fade.
@@ -78,7 +91,7 @@ export function usePageEntrance(scopeRef: RefObject<HTMLElement | null>, view?: 
       switchingView ? [] : scope.querySelectorAll<HTMLElement>('[data-page-header]'),
     )
     const allTextLines = Array.from(scope.querySelectorAll<HTMLElement>('[data-enter-text]'))
-    let allImages = Array.from(scope.querySelectorAll<HTMLElement>('[data-enter-image]'))
+    let allImages = entranceImages()
     const allMetadata = Array.from(scope.querySelectorAll<HTMLElement>('[data-enter-meta]'))
     const hero = scope.querySelector<HTMLElement>('.case-study__hero')
     const gallery = scope.querySelector<HTMLElement>('.project-gallery')
@@ -266,14 +279,15 @@ export function usePageEntrance(scopeRef: RefObject<HTMLElement | null>, view?: 
       entranceFrame = requestAnimationFrame(() => {
         entranceFrame = requestAnimationFrame(() => {
           // Responsive cycle sizing may have added cards since the first render.
-          allImages = Array.from(scope.querySelectorAll<HTMLElement>('[data-enter-image]'))
+          allImages = entranceImages()
+          if (galleryKey && view === 'grid' && allImages.length > 0) visitedGridGalleries.add(galleryKey)
           if (allImages.length) gsap.set(allImages, { opacity: 0 })
           const textLines = allTextLines.filter(isVisibleInViewport)
           const visibleImages = allImages.filter(isVisibleInViewport)
-          const images = gsap.utils.shuffle([...visibleImages])
+          const images = skipGridImages ? allImages : gsap.utils.shuffle([...visibleImages])
           const metadata = allMetadata.filter(isVisibleInViewport)
           const hiddenTextLines = allTextLines.filter(element => !textLines.includes(element))
-          const hiddenImages = allImages.filter(element => !visibleImages.includes(element))
+          const hiddenImages = skipGridImages ? [] : allImages.filter(element => !visibleImages.includes(element))
           const hiddenMetadata = allMetadata.filter(element => !metadata.includes(element))
 
           if (hiddenTextLines.length > 0) gsap.set(hiddenTextLines, { clearProps: 'opacity,transform' })
@@ -290,10 +304,11 @@ export function usePageEntrance(scopeRef: RefObject<HTMLElement | null>, view?: 
           }, '-=0.08')
           if (images.length > 0) timeline.to(images, {
             opacity: 1,
-            duration: reducedMotion ? 0.22 : 0.62,
-            stagger: reducedMotion ? 0.025 : 0.075,
+            duration: skipGridImages ? (reducedMotion ? 0 : 0.15) : reducedMotion ? 0.22 : 0.62,
+            stagger: skipGridImages ? 0 : reducedMotion ? 0.025 : 0.075,
             ease: 'power2.out',
-          }, '-=0.18')
+            clearProps: 'opacity',
+          }, skipGridImages ? 0 : '-=0.18')
           if (metadata.length > 0) timeline.to(metadata, {
             opacity: 1,
             y: 0,

@@ -235,3 +235,25 @@ test('Vite discovers projects, respects URL base, and refreshes JSON/order/image
   await rm(second, { recursive: true })
   await eventually(async () => !(await server.transformRequest(id)).code.includes('"slug":"second"'))
 })
+
+
+test('video rows accept two or three videos and reject unsupported counts', async t => {
+  const root = await fixture(t)
+  const directory = await addProject(root, 'video-row')
+  await addVideo(directory)
+  for (const count of [2, 3]) {
+    await writeFile(path.join(directory, 'info.json'), JSON.stringify({
+      ...info, sections: [{ videos: Array.from({ length: count }, () => ({ video: 'demo.mp4' })) }],
+    }))
+    const [entry] = await read(root)
+    assert.equal(entry.sections[0].type, 'videos')
+    assert.equal(entry.sections[0].videos.length, count)
+    assert.ok(entry.sections[0].videos.every(video => video.width === 320 && video.height === 180))
+  }
+  for (const count of [0, 1, 4]) {
+    await writeFile(path.join(directory, 'info.json'), JSON.stringify({
+      ...info, sections: [{ videos: Array.from({ length: count }, () => ({ video: 'demo.mp4' })) }],
+    }))
+    await assert.rejects(read(root), /needs two or three videos/)
+  }
+})

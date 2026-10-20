@@ -69,7 +69,7 @@ export function ProjectSection({ section }: { section: CaseStudySection }) {
     </figcaption>}
   </figure>
 
-  if (section.type === 'videos') return <div className="case-study__videos">
+  if (section.type === 'videos') return <div className="case-study__videos" data-columns={section.videos.length}>
     {section.videos.map((video, index) => (
       <figure
         className="case-study__video"

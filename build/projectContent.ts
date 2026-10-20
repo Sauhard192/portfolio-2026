@@ -152,8 +152,8 @@ async function readProject(directory: string, folder: string, placeholderPath: s
       if ('videos' in section) {
         keys(section, ['videos'], label)
 
-        if (!Array.isArray(section.videos) || section.videos.length !== 2) {
-          throw new Error(`${label}.videos needs exactly two videos.`)
+        if (!Array.isArray(section.videos) || (section.videos.length !== 2 && section.videos.length !== 3)) {
+          throw new Error(`${label}.videos needs two or three videos.`)
         }
 
         const videos = await Promise.all(

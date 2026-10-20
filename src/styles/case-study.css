@@ -161,6 +161,7 @@
   gap: var(--case-image-gap);
 }
 .case-study__images[data-columns='1'] { grid-template-columns: minmax(0, 1fr); }
+.case-study__videos[data-columns='3'],
 .case-study__images[data-columns='3'] { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .case-study__notes { display: grid; grid-template-columns: 1fr 1fr; gap: var(--case-image-gap); }
 .case-study__notes h2 {
@@ -301,7 +302,8 @@
   .case-study__notes { grid-template-columns: minmax(0, 1fr); gap: var(--space-5); }
   .case-study__images,
   .case-study__images[data-columns='3'],
-  .case-study__videos {
+  .case-study__videos,
+  .case-study__videos[data-columns='3'] {
     grid-template-columns: minmax(0, 1fr);
   }
 

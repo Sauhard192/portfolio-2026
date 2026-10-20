@@ -1,4 +1,5 @@
 import { galleryMemory } from './galleryMemory'
+import { isStartupPending } from '../layout/startupTransition'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Canvas, type ThreeEvent, useFrame, useThree } from '@react-three/fiber'
 import { Link, useNavigate } from 'react-router-dom'
@@ -32,6 +33,11 @@ interface SpiralMotion extends ScrollMotion {
   hoveredSlot: number | null
   pageVisible: boolean
 }
+
+// Per-collection memory resets on refresh, independently of Grid visits.
+const revealedSpirals = new Set<MediaCollection>()
+const SPIRAL_REVEAL_DURATION = 1
+const CARD_REVEAL_DURATION = 0.28
 
 // Motion controls.
 // Set from 0 (stopped) to 1 (full idle speed).
@@ -214,6 +220,8 @@ function SpiralScene({ collection, items, motion, onReady, onErrors }: SpiralSce
   const images = useSpiralImages(items, CARD_ASPECT_RATIO, Math.min(4, gl.capabilities.getMaxAnisotropy()), onErrors)
   const placeholders = useMemo(createSpiralPlaceholders, [])
   const motionPreference = useMemo(() => window.matchMedia('(prefers-reduced-motion: reduce)'), [])
+  const [animateEntrance] = useState(() => !revealedSpirals.has(collection))
+  const entrance = useRef<{ elapsed: number; ranks: number[]; count: number } | null>(null)
   const imageMaterials = useRef<Array<THREE.MeshBasicMaterial | null>>([])
   const firstFrame = useRef(false)
   const readyFrame = useRef(0)
@@ -256,6 +264,18 @@ function SpiralScene({ collection, items, motion, onReady, onErrors }: SpiralSce
 
     const safeDelta = Math.min(delta, 0.05)
     const reducedMotion = motionPreference.matches
+    if (!entrance.current && !isStartupPending()
+      && (!animateEntrance || reducedMotion || images.every(image => image.status !== 'loading'))) {
+      // Capture the initial top-to-bottom order once; interaction never reorders delays.
+      const order = Array.from({ length: slotCount }, (_, index) => ({
+        index, phase: getSpiralSlot(index, slotCount, state.position, items.length).phase,
+      })).sort((a, b) => a.phase - b.phase)
+      const ranks: number[] = []
+      order.forEach((slot, rank) => { ranks[slot.index] = rank })
+      entrance.current = { elapsed: 0, ranks, count: slotCount }
+      revealedSpirals.add(collection)
+    }
+    if (entrance.current) entrance.current.elapsed += safeDelta
     const idleSpeed = 1 / (HELIX_TURNS * IDLE_ROTATION_SECONDS)
     const idleMultiplier = state.hovering ? HOVER_IDLE_SPEED_MULTIPLIER : 1
     // Idle and input move along the same path, without rotating the path itself.
@@ -302,7 +322,13 @@ function SpiralScene({ collection, items, motion, onReady, onErrors }: SpiralSce
       )
       hoverScales.current[index] = hoverScale
 
-      const cardScale = fitScale * hoverScale
+      const reveal = entrance.current
+      const delay = reveal ? (reveal.ranks[index] ?? reveal.count - 1)
+        / Math.max(1, reveal.count - 1) * (SPIRAL_REVEAL_DURATION - CARD_REVEAL_DURATION) : 0
+      const progress = !animateEntrance || reducedMotion ? 1
+        : reveal ? THREE.MathUtils.clamp((reveal.elapsed - delay) / CARD_REVEAL_DURATION, 0, 1) : 0
+      const revealAmount = 1 - (1 - progress) ** 3
+      const cardScale = fitScale * hoverScale * (0.96 + 0.04 * revealAmount)
       // Offset the scaled geometry so its center remains attached to the cylinder.
       const centerOffset = radius * (fitScale - cardScale)
 
@@ -313,9 +339,11 @@ function SpiralScene({ collection, items, motion, onReady, onErrors }: SpiralSce
       material.color.setScalar(0.48 + depth * 0.52)
       const image = images[itemIndex]
       const imageMaterial = imageMaterials.current[index]
-      // Each image fades once when ready; recycled cards keep their opacity.
-      const opacity = image.status === 'ready' ? Math.min(1, (performance.now() - image.readyAt) / 250) : 0
-      material.visible = image.status === 'error'
+      // One ordered entrance replaces independent texture-loading fades.
+      const opacity = image.status === 'ready' ? revealAmount : 0
+      material.visible = image.status === 'error' && revealAmount > 0
+      material.transparent = true
+      material.opacity = revealAmount
       if (imageMaterial) {
         if (imageMaterial.map !== image.texture) { imageMaterial.map = image.texture; imageMaterial.needsUpdate = true }
         imageMaterial.visible = image.status === 'ready'

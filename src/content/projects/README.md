@@ -238,9 +238,9 @@ Videos:
 
 The single video uses the same sideways mask-and-scale reveal as a full-width image. Its optional caption uses the same caption styling and delayed fade.
 
-#### Two videos in one row
+#### Two or three videos in one row
 
-Use `videos` with exactly two objects:
+Use `videos` with two or three objects. Each object creates one column:
 
 ```json
 {
@@ -259,12 +259,14 @@ Use `videos` with exactly two objects:
 }
 ```
 
+To display three videos in a row, add a third object such as `{ "video": "detail.mp4" }` to the `videos` array.
+
 Only `video` is required inside each object; `poster`, `alt`, and `caption` are optional and follow the same rules as a single video.
 
 - Videos sit side by side above 640px and stack in their listed order at 640px and below.
 - Each preserves its original aspect ratio, so their heights can differ. Top edges align.
 - Each plays and pauses independently, with its own optional caption below it.
-- Paired videos use the upward mask-and-scale reveal and row stagger used by paired images. Once stacked on mobile, each triggers independently as it enters view.
+- Video rows use the upward mask-and-scale reveal and row stagger used by paired images. Once stacked on mobile, each triggers independently as it enters view.
 
 ## Project URLs and metadata labels
 

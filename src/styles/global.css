@@ -79,7 +79,7 @@ small,
   --background-columns: 12;
   --background-column-gap: var(--space-4);
   --background-column-step: calc((100% + var(--background-column-gap)) / var(--background-columns));
-  background-color: var(--color-surface);
+  background-color: var(--color-background);
   background-image: repeating-linear-gradient(
     90deg,
     var(--color-grid-line) 0 1px,

@@ -65,3 +65,12 @@
   .image-skeleton::after { animation: none; }
   .progressive-image > img, .image-skeleton { transition: none; }
 }
+
+/* Return visits reveal loaded Grid images immediately, including uncached images. */
+[data-skip-grid-image-motion='true'] .project-gallery--grid .progressive-image > img,
+[data-skip-grid-image-motion='true'] .project-gallery--grid .image-skeleton {
+  transition: none;
+}
+[data-skip-grid-image-motion='true'] .project-gallery--grid .image-skeleton::after {
+  animation: none;
+}

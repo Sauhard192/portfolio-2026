@@ -1,0 +1,79 @@
+{
+  "slug": "cozy-clay",
+  "title": "Cozy Clay Store",
+  "roles": ["Website Design", "Online Store", "Visual Design", "Responsive Design"],
+  "projectType": "Website Design",
+  "date": "2026",
+  "description": "Designed and developed a playful e-commerce website for Cozy Clay, a handmade clay accessories brand based in Bhaktapur, Nepal. The website combines vibrant colors, expressive typography, and charming illustrations to reflect the brand's fun and personal character.",
+  "siteUrl": "https://cozyclay.store",
+  "hero": "cover.png",
+  "thumbnail": "thumbnail.png",
+  "cornerRadius": "3rem",
+
+
+  "sections": [
+    {
+      "images":[
+        {
+          "file": "img1.png",
+          "caption": "The category illustrative icons were made using generative AI."
+        }
+      ]
+    },
+
+    {
+      "title": "The Digital Storefront",
+      "body": "Designed a playful and intuitive storefront that makes browsing handmade products simple and enjoyable. From the welcoming homepage to the organized product catalogue, each section balances expressive visuals with clear navigation, allowing the products to take center stage."
+    },
+    
+    {
+      "images":[
+        "img2.png"
+      ]
+    },
+    {
+      "images":[
+        "img3.png"
+      ]
+    },
+    {
+      "images":[
+        "img4.png"
+      ]
+    },
+    {
+      "images":[
+        "img5.png"
+      ]
+    },
+    {
+      "images": [
+        {
+          "file": "img6.png"
+        },
+        {
+          "file": "img7.png"
+        }
+      ]
+    },
+
+    {
+      "title": "Little Details, Big Personality",
+      "body": "Playful animations, subtle hover effects, and interactive elements bring Cozy Clay's personality to life, making the browsing experience feel more engaging, expressive, and fun."
+    },
+    
+    {
+      "videos": [
+        {
+          "video": "vid1.mp4"
+        },
+        {
+          "video": "vid2.mp4"
+        },
+        {
+          "video": "vid3.mp4"
+        }
+      ]
+    }
+  ]
+}
