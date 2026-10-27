@@ -128,7 +128,7 @@
   top: var(--header-block-offset);
   left: 50%;
   width: 199px;
-  padding: 4px;
+  padding: var(--gallery-control-padding);
   overflow: hidden;
   border-radius: 100px;
   transform: translateX(-50%);
@@ -141,7 +141,7 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   width: 100%;
-  height: 48px;
+  height: var(--gallery-control-item-height);
 }
 
 .view-switcher__active {
@@ -162,7 +162,7 @@
 
 .view-switcher button {
   z-index: 1;
-  height: 48px;
+  height: var(--gallery-control-item-height);
   min-width: 0;
   padding: 0 4px;
   border: 0;
@@ -232,12 +232,20 @@
   position: relative;
   width: 100%;
   outline-offset: 8px;
-  transition: scale var(--duration-ui) var(--ease-out), filter var(--duration-ui) ease;
+  transition: scale var(--duration-ui) var(--ease-out), filter var(--duration-ui) ease,
+    opacity 250ms var(--ease-standard);
 }
 
-.project-gallery:not([data-grid-lens]) .project-card:hover,
-.project-card[data-lens-hover='true'],
-.project-card:focus-within {
+.project-card[data-filter-disabled='true'] {
+  opacity: 0.3;
+  pointer-events: none;
+  scale: 1;
+  filter: none;
+}
+
+.project-gallery:not([data-grid-lens]) .project-card:not([data-filter-disabled]):hover,
+.project-card:not([data-filter-disabled])[data-lens-hover='true'],
+.project-card:not([data-filter-disabled]):focus-within {
   z-index: 2;
   filter: saturate(1.08);
   scale: 1.035;
@@ -332,6 +340,9 @@
   height: 100%;
   object-fit: cover;
 }
+
+.project-gallery[data-bounded='true'] .project-gallery__zoom-layer { inset: 0; }
+.project-gallery[data-bounded='true'] .project-gallery__track { top: 0; }
 
 .site-cursor {
   position: fixed;

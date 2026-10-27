@@ -89,6 +89,7 @@ export default function GalleryEdgeLensCanvas({ galleryRef, source, grid = false
     const point = gridLensSourcePoint(x, y, innerWidth, innerHeight)
     const cards = galleryRef.current?.querySelectorAll<HTMLElement>('.project-card') ?? []
     const card = Array.from(cards).find(item => {
+      if (item.dataset.filterDisabled === 'true') return false
       const r = item.getBoundingClientRect()
       return point.x >= r.left && point.x <= r.right && point.y >= r.top && point.y <= r.bottom
     }) ?? null
@@ -121,7 +122,13 @@ export default function GalleryEdgeLensCanvas({ galleryRef, source, grid = false
       })
     }
     window.addEventListener('scroll', update, { passive: true })
-    return () => { window.removeEventListener('scroll', update); cancelAnimationFrame(frame) }
+    const gallery = galleryRef.current
+    gallery?.addEventListener('portfolio:filter-change', update)
+    return () => {
+      window.removeEventListener('scroll', update)
+      gallery?.removeEventListener('portfolio:filter-change', update)
+      cancelAnimationFrame(frame)
+    }
   }, [grid, ready, failed])
   useEffect(() => {
     const gallery = galleryRef.current
@@ -230,7 +237,7 @@ function LensScene({ galleryRef, source, grid = false, onReady, onFailure }: Pro
     })
     const loading = grid && records.some(({ element, opacity }) => element.classList.contains('image-skeleton') && opacity > 0)
     const signature = `${loading ? Math.floor(performance.now() / 32) : ''},${size.width},${size.height},${pageStyle.backgroundColor}|` + records.map(({ element, rect, style, opacity }) =>
-      `${rect.x.toFixed(2)},${rect.y.toFixed(2)},${rect.width.toFixed(2)},${rect.height.toFixed(2)},${opacity.toFixed(3)},${style.color},${element instanceof HTMLImageElement ? element.currentSrc + element.complete : element.textContent}`,
+      `${rect.x.toFixed(2)},${rect.y.toFixed(2)},${rect.width.toFixed(2)},${rect.height.toFixed(2)},${opacity.toFixed(3)},${style.color},${style.backgroundColor},${element instanceof HTMLImageElement ? element.currentSrc + element.complete : element.textContent}`,
     ).join('|')
     if (signature === lastSignature.current) return
     lastSignature.current = signature

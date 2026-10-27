@@ -76,6 +76,9 @@
   --type-switcher-size:  var(--font-size-label);
   --type-switcher-weight: var(--font-weight-semibold);
   --type-switcher-line-height: var(--line-height-label);
+  --gallery-control-item-height: 3rem;
+  --gallery-control-padding: 0.25rem;
+  --gallery-control-height: calc(var(--gallery-control-item-height) + 2 * var(--gallery-control-padding));
 
   --type-project-title-size: var(--font-size-display);
   --type-project-title-weight: 300;
